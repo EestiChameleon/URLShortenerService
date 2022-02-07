@@ -15,14 +15,15 @@ func URLHandler(w http.ResponseWriter, r *http.Request) {
 	case "GET":
 		// GET /{id}
 		urlID := r.URL.Path[len("/"):]
-		fmt.Println(urlID)
 
-		if !checkURLID(urlID) {
+		shortedURL := fmt.Sprintf("localhost:8080/%v", urlID)
+
+		if !checkURLID(shortedURL) {
 			http.Error(w, "provided url id is not valid", 400)
 			return
 		}
 
-		w.Header().Set("Location", store.db[urlID])
+		w.Header().Set("Location", store.db[shortedURL])
 		w.WriteHeader(http.StatusTemporaryRedirect)
 
 	case "POST": // POST / in body = url to short
@@ -43,12 +44,13 @@ func URLHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), 500)
 			return
 		}
+		shortedURL := fmt.Sprintf("localhost:8080/%v", shortedURLID)
 
-		store.Put(shortedURLID, reqURL)
+		store.Put(shortedURL, reqURL)
 
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.WriteHeader(201)
-		shortedURL := fmt.Sprintf("localhost:8080/%v", shortedURLID)
+
 		_, err = w.Write([]byte(shortedURL))
 		if err != nil {
 			http.Error(w, err.Error(), 500)
