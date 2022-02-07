@@ -3,6 +3,7 @@ package app
 import (
 	"crypto/rand"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 )
 
@@ -25,13 +26,13 @@ func URLHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusTemporaryRedirect)
 
 	case "POST": // POST / in body = url to short
-
-		if err := r.ParseForm(); err != nil {
+		responseData, err := ioutil.ReadAll(r.Body)
+		if err != nil {
 			http.Error(w, "empty body", 400)
 			return
 		}
 
-		reqURL := r.FormValue("URL")
+		reqURL := string(responseData)
 		if reqURL == "" {
 			http.Error(w, "empty body", 400)
 			return
