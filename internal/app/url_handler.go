@@ -16,7 +16,7 @@ func URLHandler(w http.ResponseWriter, r *http.Request) {
 		// GET /{id}
 		urlID := r.URL.Path[len("/"):]
 
-		shortedURL := fmt.Sprintf("localhost:8080/%v", urlID)
+		shortedURL := fmt.Sprintf("http://localhost:8080/%v", urlID)
 
 		if !checkURLID(shortedURL) {
 			http.Error(w, "provided url id is not valid", 400)
@@ -44,7 +44,7 @@ func URLHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), 500)
 			return
 		}
-		shortedURL := fmt.Sprintf("localhost:8080/%v", shortedURLID)
+		shortedURL := fmt.Sprintf("http://localhost:8080/%v", shortedURLID)
 
 		store.Put(shortedURL, reqURL)
 
