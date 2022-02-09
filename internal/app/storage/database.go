@@ -1,7 +1,7 @@
-package app
+package storage
 
 type Store struct {
-	db map[string]string
+	DB map[string]string
 }
 
 //func NewStore() *Store {
@@ -10,9 +10,9 @@ type Store struct {
 //}
 
 func (k Store) Get(key string) string {
-	return k.db[key]
+	return k.DB[key]
 }
 
 func (k Store) Put(key string, value string) {
-	k.db[key] = value
+	k.DB[key] = value
 }

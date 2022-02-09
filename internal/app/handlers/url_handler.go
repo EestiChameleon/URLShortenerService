@@ -1,13 +1,14 @@
-package app
+package handlers
 
 import (
 	"crypto/rand"
 	"fmt"
+	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 	"io/ioutil"
 	"net/http"
 )
 
-var store = &Store{db: map[string]string{}}
+var store = &storage.Store{DB: map[string]string{"http://localhost:8080/test": "https://jwt.io/"}}
 
 func URLHandler(w http.ResponseWriter, r *http.Request) {
 
@@ -16,15 +17,17 @@ func URLHandler(w http.ResponseWriter, r *http.Request) {
 		// GET /{id}
 		shortedURL := "http://" + r.Host + r.URL.Path
 
-		if !checkURL(shortedURL) {
+		longURL, ok := store.DB[shortedURL]
+		if !ok {
 			http.Error(w, "provided url id is not valid", 400)
 			return
 		}
 
-		w.Header().Set("Location", store.db[shortedURL])
+		w.Header().Set("Location", longURL)
 		w.WriteHeader(http.StatusTemporaryRedirect)
 
 	case "POST": // POST / in body = url to short
+		defer r.Body.Close()
 		responseData, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			http.Error(w, "empty body", 400)
@@ -68,13 +71,4 @@ func shortUrl() (shortedURL string, err error) {
 	}
 	shortedURL = fmt.Sprintf("http://localhost:8080/%x", b[0:])
 	return
-}
-
-func checkURL(id string) bool {
-	for k := range store.db {
-		if id == k {
-			return true
-		}
-	}
-	return false
 }
