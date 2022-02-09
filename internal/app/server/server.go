@@ -2,13 +2,18 @@ package server
 
 import (
 	"github.com/EestiChameleon/URLShortenerService/internal/app/handlers"
-	"net/http"
+	"github.com/fasthttp/router"
+	"github.com/valyala/fasthttp"
+	"log"
 )
 
 func Start() (err error) {
-	http.HandleFunc("/", handlers.URLHandler)
+	r := router.New()
+	r.GET("/{id}", handlers.GetOrigURL)
 
-	err = http.ListenAndServe("localhost:8080", nil)
+	r.POST("/", handlers.PostProvideShortURL)
+
+	log.Fatal(fasthttp.ListenAndServe("localhost:8080", r.Handler))
 
 	return
 }
