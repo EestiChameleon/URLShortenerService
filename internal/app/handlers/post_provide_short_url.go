@@ -16,7 +16,7 @@ func PostProvideShortURL(ctx echo.Context) (err error) {
 	// check the content type - we are expecting an incoming text url
 	if ctx.Request().Header.Get("Content-Type") != echo.MIMETextPlainCharsetUTF8 {
 		log.Println("invalid context-type")
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid url")
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid content-type")
 	}
 	// read the url in the body
 	defer ctx.Request().Body.Close()
@@ -29,7 +29,7 @@ func PostProvideShortURL(ctx echo.Context) (err error) {
 	longURL := string(bytes)
 	if longURL == "" {
 		log.Println("empty incoming url")
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid url")
+		return echo.NewHTTPError(http.StatusBadRequest, "empty url")
 	}
 	// get a short url to pair with the orig url
 	shortURL, err := shortUrl()
