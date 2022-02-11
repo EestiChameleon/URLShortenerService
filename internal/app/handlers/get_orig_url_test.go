@@ -1,79 +1,78 @@
 package handlers
 
 import (
+	"fmt"
+	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
-	"github.com/valyala/fasthttp"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 )
-
-func createGETRequest() *fasthttp.RequestCtx {
-	req := &fasthttp.RequestCtx{
-		Request:  fasthttp.Request{},
-		Response: fasthttp.Response{},
-	}
-	return req
-}
 
 func TestGetOrigURL(t *testing.T) {
 	type want struct {
 		contentType    string
 		statusCode     int
-		response       string
+		respMessage    string
 		headerLocation string
 	}
 
 	tests := []struct {
-		name       string
-		requestURL string
-		id         string
-		want       want
+		name    string
+		request string
+		want    want
 	}{
 		{
-			name:       "GET test #1: test url -> 307",
-			requestURL: "http://localhost:8080/",
-			id:         "test",
+			name:    "GET test #1: test url -> 307",
+			request: "test",
 			want: want{
-				contentType:    "text/plain; charset=utf-8",
+				contentType:    "text/plain; charset=UTF-8",
 				statusCode:     307,
 				headerLocation: "https://jwt.io/",
-				response:       "",
 			},
 		},
 		{
-			name:       "GET test #2: empty id -> 400",
-			requestURL: "http://localhost:8080/",
+			name:    "GET test #2: empty id -> 400",
+			request: "",
 			want: want{
-				contentType: "text/plain; charset=utf-8",
 				statusCode:  400,
-				response:    "invalid id",
+				respMessage: "invalid id",
 			},
 		},
 		{
-			name:       "GET test #3: wrong id -> 400",
-			requestURL: "http://localhost:8080/",
-			id:         "666xxx",
+			name:    "GET test #3: wrong id -> 400",
+			request: "666xxx",
 			want: want{
-				contentType: "text/plain; charset=utf-8",
 				statusCode:  400,
-				response:    "no Args value for the given key",
+				respMessage: "invalid id",
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx := createGETRequest()
-			ctx.Request.SetRequestURI(tt.requestURL)
-			ctx.SetUserValue("id", tt.id)
-			GetOrigURL(ctx)
+			// Setup
+			e := echo.New()
+			req := httptest.NewRequest(http.MethodGet, "/", nil)
+			req.Host = "localhost:8080"
+			rec := httptest.NewRecorder()
+			c := e.NewContext(req, rec)
+			c.SetPath("/id")
+			c.SetParamNames("id")
+			c.SetParamValues(tt.request)
 
-			sc := ctx.Response.StatusCode()
-			assert.Equal(t, tt.want.statusCode, sc)
+			// Assertions
+			err := GetOrigURL(c)
+			if err == nil {
+				res := rec.Result()
+				assert.Equal(t, tt.want.statusCode, res.StatusCode)
 
-			assert.Equal(t, tt.want.contentType, string(ctx.Response.Header.ContentType()))
+				assert.Equal(t, tt.want.contentType, res.Header.Get(echo.HeaderContentType))
+			} else {
 
-			if tt.want.response != "" {
-				assert.Equal(t, tt.want.response, string(ctx.Response.Body()))
+				respMsg := fmt.Sprintf("code=%d, message=%s", tt.want.statusCode, tt.want.respMessage)
+				assert.Equal(t, respMsg, err.Error())
 			}
+
 		})
 	}
 }

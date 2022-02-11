@@ -1,68 +1,92 @@
 package handlers
 
 import (
+	"fmt"
+	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
-	"github.com/valyala/fasthttp"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
 )
-
-func createPOSTRequest() *fasthttp.RequestCtx {
-	req := &fasthttp.RequestCtx{
-		Request:  fasthttp.Request{},
-		Response: fasthttp.Response{},
-	}
-	return req
-}
 
 func TestPostProvideShortURL(t *testing.T) {
 	type want struct {
 		contentType string
 		statusCode  int
-		response    string
+		respMessage string
 	}
 
 	tests := []struct {
-		name       string
-		requestURL string
-		body       string
-		want       want
+		name        string
+		contentType string
+		request     string
+		body        string
+		want        want
 	}{
 		{
-			name:       "POST test #1: url -> 201",
-			requestURL: "http://localhost:8080/",
-			body:       "https://jwt.io/",
+			name:        "POST test #1: url -> 201",
+			contentType: echo.MIMETextPlainCharsetUTF8,
+			request:     "http://localhost:8080/",
+			body:        "https://jwt.io/",
 			want: want{
-				contentType: "text/plain; charset=utf-8",
+				contentType: echo.MIMETextPlainCharsetUTF8,
 				statusCode:  201,
-				response:    "",
+				respMessage: "",
 			},
 		},
 		{
-			name:       "POST test #2: empty url -> 400",
-			requestURL: "http://localhost:8080/",
-			body:       "",
+			name:        "POST test #2: empty url -> 400",
+			contentType: echo.MIMETextPlainCharsetUTF8,
+			request:     "http://localhost:8080/",
+			body:        "",
 			want: want{
 				contentType: "text/plain; charset=utf-8",
-				response:    "empty body",
+				respMessage: "invalid url",
 				statusCode:  400,
+			},
+		},
+		{
+			name:        "POST test #3: wrong content type -> 400",
+			contentType: echo.MIMEApplicationJSON,
+			request:     "http://localhost:8080/",
+			body:        "https://jwt.io/",
+			want: want{
+				contentType: echo.MIMETextPlainCharsetUTF8,
+				statusCode:  400,
+				respMessage: "invalid url",
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx := createPOSTRequest()
-			ctx.Request.SetBodyString(tt.body)
-			ctx.Request.SetHost(tt.requestURL)
-			PostProvideShortURL(ctx)
+			// Setup
+			e := echo.New()
+			req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(tt.body))
+			req.Header.Set(echo.HeaderContentType, tt.contentType)
+			req.Host = "http://localhost:8080/"
+			rec := httptest.NewRecorder()
+			ctx := e.NewContext(req, rec)
 
-			sc := ctx.Response.StatusCode()
-			assert.Equal(t, tt.want.statusCode, sc)
+			// Assertions
+			err := PostProvideShortURL(ctx)
+			res := rec.Result()
+			defer res.Body.Close()
+			if err == nil {
+				assert.Equal(t, tt.want.statusCode, res.StatusCode)
+				assert.Equal(t, tt.want.contentType, res.Header.Get(echo.HeaderContentType))
+				url, err := io.ReadAll(res.Body)
+				if err != nil {
+					t.Log(err)
+				}
+				assert.NotEqual(t, tt.want.respMessage, url)
+			} else {
 
-			assert.Equal(t, tt.want.contentType, string(ctx.Response.Header.ContentType()))
-
-			if tt.want.response != "" {
-				assert.Equal(t, tt.want.response, string(ctx.Response.Body()))
+				respMsg := fmt.Sprintf("code=%d, message=%s", tt.want.statusCode, tt.want.respMessage)
+				assert.Equal(t, respMsg, err.Error())
 			}
+
 		})
 	}
 }

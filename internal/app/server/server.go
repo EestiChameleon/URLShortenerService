@@ -2,18 +2,31 @@ package server
 
 import (
 	"github.com/EestiChameleon/URLShortenerService/internal/app/handlers"
-	"github.com/fasthttp/router"
-	"github.com/valyala/fasthttp"
-	"log"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+	"net/http"
 )
 
-func Start() (err error) {
-	r := router.New()
-	r.GET("/{id}", handlers.GetOrigURL)
+func Start() {
+	// Echo instance
+	router := echo.New()
 
-	r.POST("/", handlers.PostProvideShortURL)
+	// Middleware
+	router.Use(middleware.Logger())
+	router.Use(middleware.Recover())
 
-	log.Fatal(fasthttp.ListenAndServe("localhost:8080", r.Handler))
+	// Routes
+	router.GET("/:id", handlers.GetOrigURL)
 
-	return
+	router.POST("/", handlers.PostProvideShortURL)
+
+	// Start server
+	s := http.Server{
+		Addr:    "localhost:8080",
+		Handler: router,
+		//ReadTimeout: 30 * time.Second, // customize http.Server timeouts
+	}
+	if err := s.ListenAndServe(); err != http.ErrServerClosed {
+		router.Logger.Fatal(err)
+	}
 }

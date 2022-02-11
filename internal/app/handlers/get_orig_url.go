@@ -2,31 +2,28 @@ package handlers
 
 import (
 	"fmt"
-	"github.com/valyala/fasthttp"
+	"github.com/labstack/echo/v4"
+	"log"
 	"net/http"
 )
 
-func GetOrigURL(ctx *fasthttp.RequestCtx) {
-	// GET /{id}
-	//var empty interface{}
-	id := ctx.UserValue("id").(string)
-	//
-	//uri := strings.Split(ctx.Request.URI().String(), "/")
-	//id := uri[3]
-
+func GetOrigURL(ctx echo.Context) (err error) {
+	// get and check the passed ID
+	id := ctx.Param("id")
 	if id == "" {
-		ctx.Error("invalid id", fasthttp.StatusBadRequest)
-		return
+		log.Println("empty shortURL id", err)
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid id")
 	}
-
-	shortedURL := fmt.Sprintf("http://%s/%s", string(ctx.Request.Host()), id) //.(string))
-
+	// check for the short url in map
+	shortedURL := fmt.Sprintf("http://%s/%s", ctx.Request().Host, id)
 	longURL, ok := store.DB[shortedURL]
 	if !ok {
-		ctx.Error(fasthttp.ErrNoArgValue.Error(), fasthttp.StatusBadRequest)
-		return
+		log.Println("shortURL pair not found", err)
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid id")
 	}
 
-	ctx.Response.Header.Set("Location", longURL)
-	ctx.Response.SetStatusCode(http.StatusTemporaryRedirect)
+	ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMETextPlainCharsetUTF8)
+	ctx.Response().Header().Set(echo.HeaderLocation, longURL)
+	ctx.Response().WriteHeader(http.StatusTemporaryRedirect)
+	return
 }
