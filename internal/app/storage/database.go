@@ -1,18 +1,65 @@
 package storage
 
+import (
+	"crypto/rand"
+	"fmt"
+)
+
+const ShortLinkHost = "http://localhost:8080"
+
 type Store struct {
-	DB map[string]string
+	db map[string]string
 }
 
-//func NewStore() *Store {
-//	store := &Store{db: map[string]string{}}
+func NewStore() *Store {
+	store := &Store{db: map[string]string{}}
+	return store
+}
+
+//func TestStore() *Store {
+//	store := &Store{db: map[string]string{"http://localhost:8080/test": "https://jwt.io/"}}
 //	return store
 //}
 
+// test pit
+//var Pit = TestStore()
+
+var Pit = NewStore()
+
 func (k Store) Get(key string) string {
-	return k.DB[key]
+	return k.db[key]
 }
 
-func (k Store) Put(key string, value string) {
-	k.DB[key] = value
+func (k Store) Put(value string) (key string, err error) {
+	key, err = ShortURL()
+	if err != nil {
+		return "", err
+	}
+	_, ok := k.Check(key)
+	if !ok {
+		k.db[key] = value
+		return key, nil
+	} else {
+		return k.Put(value)
+	}
+}
+
+func (k Store) Check(key string) (value string, ok bool) {
+	value, ok = k.db[key]
+	if ok {
+		return value, true
+	} else {
+		return "", false
+	}
+}
+
+func ShortURL() (shortedURL string, err error) {
+	// 7 bytes is enough to provide more than 78kkk diff combinations
+	b := make([]byte, 7)
+	_, err = rand.Read(b)
+	if err != nil {
+		return "", err
+	}
+	shortedURL = fmt.Sprintf("%s/%x", ShortLinkHost, b[0:])
+	return
 }
