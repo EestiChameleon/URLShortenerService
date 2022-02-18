@@ -2,23 +2,31 @@ package server
 
 import (
 	"github.com/EestiChameleon/URLShortenerService/internal/app/handlers"
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+
 	"net/http"
 )
 
 func Start() {
-	// Echo instance
-	router := echo.New()
+	// Chi instance
+	router := chi.NewRouter()
 
-	// Middleware
-	router.Use(middleware.Logger())
-	router.Use(middleware.Recover())
+	// A good base middleware stack
+	router.Use(middleware.RequestID)
+	router.Use(middleware.RealIP)
+	router.Use(middleware.Logger)
+	router.Use(middleware.Recoverer)
+
+	// Set a timeout value on the request context (ctx), that will signal
+	// through ctx.Done() that the request has timed out and further
+	// processing should be stopped.
+	//router.Use(middleware.Timeout(60 * time.Second))
 
 	// Routes
-	router.GET("/:id", handlers.GetOrigURL)
+	router.Get("/{id}", handlers.GetOrigURL)
 
-	router.POST("/", handlers.PostProvideShortURL)
+	router.Post("/", handlers.PostProvideShortURL)
 
 	// Start server
 	s := http.Server{
@@ -27,6 +35,6 @@ func Start() {
 		//ReadTimeout: 30 * time.Second, // customize http.Server timeouts
 	}
 	if err := s.ListenAndServe(); err != http.ErrServerClosed {
-		router.Logger.Fatal(err)
+		panic(err)
 	}
 }

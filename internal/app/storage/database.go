@@ -13,18 +13,18 @@ type Store struct {
 
 func NewStore() *Store {
 	store := &Store{db: map[string]string{}}
+	//test pit
+	//store := &Store{db: map[string]string{"http://localhost:8080/test": "https://jwt.io/"}}
 	return store
 }
 
-//func TestStore() *Store {
-//	store := &Store{db: map[string]string{"http://localhost:8080/test": "https://jwt.io/"}}
-//	return store
-//}
-
-// test pit
-//var Pit = TestStore()
-
 var Pit = NewStore()
+
+//test pit
+func TestStore() *Store {
+	store := &Store{db: map[string]string{"http://localhost:8080/test": "https://jwt.io/"}}
+	return store
+}
 
 func (k Store) Get(key string) string {
 	return k.db[key]

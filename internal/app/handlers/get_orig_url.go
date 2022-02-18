@@ -2,29 +2,27 @@ package handlers
 
 import (
 	"fmt"
+	resp "github.com/EestiChameleon/URLShortenerService/internal/app/responses"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
-	"github.com/labstack/echo/v4"
+	"github.com/go-chi/chi/v5"
 	"log"
 	"net/http"
 )
 
-func GetOrigURL(ctx echo.Context) (err error) {
+func GetOrigURL(w http.ResponseWriter, r *http.Request) {
 	// get and check the passed ID
-	id := ctx.Param("id")
-	if id == "" {
-		log.Println("empty shortURL id", err)
-		return ctx.String(http.StatusBadRequest, "invalid id")
-	}
+	id := chi.URLParam(r, "id")
+	// if id is empty - chi router will provide 404 error as "unknown path GET /"
+
 	// check for the short url in map
 	shortedURL := fmt.Sprintf("%s/%s", storage.ShortLinkHost, id)
 	longURL, ok := storage.Pit.Check(shortedURL)
 	if !ok {
-		log.Println("shortURL pair not found", err)
-		return ctx.String(http.StatusBadRequest, "invalid id")
+		log.Println("shortURL pair not found")
+		resp.WriteString(w, http.StatusBadRequest, "invalid id")
+		return
 	}
 
-	ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMETextPlainCharsetUTF8)
-	ctx.Response().Header().Set(echo.HeaderLocation, longURL)
-	ctx.Response().WriteHeader(http.StatusTemporaryRedirect)
+	resp.RedirectString(w, longURL)
 	return
 }

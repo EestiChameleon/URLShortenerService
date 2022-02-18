@@ -1,34 +1,41 @@
 package handlers
 
 import (
+	resp "github.com/EestiChameleon/URLShortenerService/internal/app/responses"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
-	"github.com/labstack/echo/v4"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 )
 
-func PostProvideShortURL(ctx echo.Context) (err error) {
-	//// check the content type - we are expecting an incoming text url
-	//if ctx.Request().Header.Get("Content-Type") != echo.MIMETextPlainCharsetUTF8 {
-	//	log.Println("invalid context-type")
-	//	return echo.NewHTTPError(http.StatusBadRequest, "invalid content-type")
-	//}
-	// read the url in the body
-	bytes, err := ioutil.ReadAll(ctx.Request().Body)
-	if err != nil {
-		log.Println("ioutil.ReadAll(ctx.Request.Body", err)
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid url")
+func PostProvideShortURL(w http.ResponseWriter, r *http.Request) {
+	// check the content type - we are expecting an incoming text url
+	if !strings.Contains(r.Header.Get("Content-Type"), resp.MIMETextPlain) {
+		log.Println("invalid context-type: ", r.Header.Get("Content-Type"))
+		resp.WriteString(w, http.StatusBadRequest, "invalid data")
+		return
 	}
+
+	//read the url in the body
+	bytes, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Println("ioutil.ReadAll(r.Body) error:", err)
+		resp.WriteString(w, http.StatusBadRequest, "invalid url")
+		return
+	}
+
 	// check if it's not empty
 	longURL := string(bytes)
 	if longURL == "" {
 		log.Println("empty incoming url")
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid url")
+		resp.WriteString(w, http.StatusBadRequest, "invalid url")
+		return
 	}
 
 	// get a short url to pair with the orig url
 	shortUrl, err := storage.Pit.Put(longURL)
 
-	return ctx.String(http.StatusCreated, shortUrl)
+	resp.WriteString(w, http.StatusCreated, shortUrl)
+	return
 }

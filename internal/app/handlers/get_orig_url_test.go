@@ -1,9 +1,12 @@
 package handlers
 
 import (
-	"fmt"
-	"github.com/labstack/echo/v4"
+	resp "github.com/EestiChameleon/URLShortenerService/internal/app/responses"
+	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
+	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -24,25 +27,27 @@ func TestGetOrigURL(t *testing.T) {
 	}{
 		{
 			name:    "GET test #1: test url -> 307",
-			request: "test",
+			request: "/test",
 			want: want{
-				contentType:    "text/plain; charset=UTF-8",
+				contentType:    resp.MIMETextPlainCharsetUTF8,
 				statusCode:     307,
 				headerLocation: "https://jwt.io/",
 			},
 		},
 		{
-			name:    "GET test #2: empty id -> 400",
-			request: "",
+			name:    "GET test #2: empty id -> 404",
+			request: "/",
 			want: want{
-				statusCode:  400,
-				respMessage: "invalid id",
+				contentType: resp.MIMETextPlainCharsetUTF8,
+				statusCode:  404,
+				respMessage: "404 page not found\n",
 			},
 		},
 		{
 			name:    "GET test #3: wrong id -> 400",
-			request: "666xxx",
+			request: "/666xxx",
 			want: want{
+				contentType: resp.MIMETextPlainCharsetUTF8,
 				statusCode:  400,
 				respMessage: "invalid id",
 			},
@@ -50,28 +55,28 @@ func TestGetOrigURL(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Setup
-			// for test change to test pit in file storage->database
-			e := echo.New()
-			req := httptest.NewRequest(http.MethodGet, "/", nil)
-			req.Host = "localhost:8080"
-			rec := httptest.NewRecorder()
-			c := e.NewContext(req, rec)
-			c.SetPath("/id")
-			c.SetParamNames("id")
-			c.SetParamValues(tt.request)
+			request := httptest.NewRequest(http.MethodGet, tt.request, nil)
+			if tt.request == "/test" {
+				storage.Pit = storage.TestStore()
+			}
+			// создаём новый Recorder
+			w := httptest.NewRecorder()
+			r := chi.NewRouter()
+			// определяем хендлер
+			r.Get("/{id}", GetOrigURL)
+			// запускаем сервер
+			r.ServeHTTP(w, request)
+			res := w.Result()
 
-			// Assertions
-			err := GetOrigURL(c)
-			if err == nil {
-				res := rec.Result()
-				assert.Equal(t, tt.want.statusCode, res.StatusCode)
+			assert.Equal(t, tt.want.statusCode, res.StatusCode)
+			assert.Equal(t, tt.want.contentType, res.Header.Get("Content-Type"))
 
-				//assert.Equal(t, tt.want.contentType, res.Header.Get(echo.HeaderContentType)) // yandex got different content-type, so the autotests fails
-			} else {
+			if tt.want.respMessage != "" {
+				defer res.Body.Close()
+				urlResult, err := ioutil.ReadAll(res.Body)
+				require.NoError(t, err)
 
-				respMsg := fmt.Sprintf("code=%d, message=%s", tt.want.statusCode, tt.want.respMessage)
-				assert.Equal(t, respMsg, err.Error())
+				assert.Equal(t, tt.want.respMessage, string(urlResult))
 			}
 
 		})
