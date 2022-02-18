@@ -27,6 +27,7 @@ func Start() {
 	router.Get("/{id}", handlers.GetOrigURL)
 
 	router.Post("/", handlers.PostProvideShortURL)
+	router.Post("/api/shorten", handlers.JSONShortURL)
 
 	// Start server
 	s := http.Server{
