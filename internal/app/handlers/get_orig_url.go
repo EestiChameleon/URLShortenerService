@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
 	resp "github.com/EestiChameleon/URLShortenerService/internal/app/responses"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 	"github.com/go-chi/chi/v5"
@@ -15,7 +16,12 @@ func GetOrigURL(w http.ResponseWriter, r *http.Request) {
 	// if id is empty - chi router will provide 404 error as "unknown path GET /"
 
 	// check for the short url in map
-	shortedURL := fmt.Sprintf("%s/%s", storage.ShortLinkHost, id)
+	var shortedURL string
+	if cfg.Envs.BaseURL == "" {
+		shortedURL = fmt.Sprintf("%s/%s", storage.ShortLinkHost, id)
+	} else {
+		shortedURL = fmt.Sprintf("%s/%s", "http://"+cfg.Envs.BaseURL, id)
+	}
 	longURL, ok := storage.Pit.Check(shortedURL)
 	if !ok {
 		log.Println("shortURL pair not found")
