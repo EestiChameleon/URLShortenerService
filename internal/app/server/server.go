@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/handlers"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -34,6 +35,10 @@ func Start() {
 		Addr:    "localhost:8080",
 		Handler: router,
 		//ReadTimeout: 30 * time.Second, // customize http.Server timeouts
+	}
+
+	if cfg.Envs.SrvAddr != "" {
+		s.Addr = cfg.Envs.SrvAddr
 	}
 	if err := s.ListenAndServe(); err != http.ErrServerClosed {
 		panic(err)
