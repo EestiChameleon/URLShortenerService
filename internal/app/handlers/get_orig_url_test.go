@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
 	resp "github.com/EestiChameleon/URLShortenerService/internal/app/responses"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 	"github.com/go-chi/chi/v5"
@@ -59,6 +60,7 @@ func TestGetOrigURL(t *testing.T) {
 			if tt.request == "/test" {
 				storage.Pit = storage.TestStore()
 			}
+			cfg.Envs = cfg.GetEnvs()
 			// создаём новый Recorder
 			w := httptest.NewRecorder()
 			r := chi.NewRouter()

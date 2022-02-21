@@ -32,14 +32,11 @@ func Start() {
 
 	// Start server
 	s := http.Server{
-		Addr:    "localhost:8080",
+		Addr:    cfg.Envs.SrvAddr,
 		Handler: router,
 		//ReadTimeout: 30 * time.Second, // customize http.Server timeouts
 	}
 
-	if cfg.Envs.SrvAddr != "" {
-		s.Addr = cfg.Envs.SrvAddr
-	}
 	if err := s.ListenAndServe(); err != http.ErrServerClosed {
 		panic(err)
 	}
