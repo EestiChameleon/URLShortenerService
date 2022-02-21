@@ -6,6 +6,8 @@ import (
 	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
 )
 
+const ShortLinkHost = "http://localhost:8080"
+
 type Store struct {
 	db map[string]string
 }
@@ -57,6 +59,10 @@ func ShortURL() (shortedURL string, err error) {
 	if err != nil {
 		return "", err
 	}
-	shortedURL = fmt.Sprintf("%s/%x", cfg.Envs.BaseURL, b[0:])
+	if cfg.Envs.BaseURL != "" {
+		shortedURL = fmt.Sprintf("%s/%x", cfg.Envs.BaseURL, b[0:])
+	} else {
+		shortedURL = fmt.Sprintf("%s/%x", ShortLinkHost, b[0:])
+	}
 	return
 }
