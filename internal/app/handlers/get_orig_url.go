@@ -22,7 +22,7 @@ func GetOrigURL(w http.ResponseWriter, r *http.Request) {
 	if cfg.Envs.BaseURL == "" {
 		shortedURL = fmt.Sprintf("%s/%s", storage.ShortLinkHost, id)
 	} else {
-		shortedURL = fmt.Sprintf("%s/%s", "http://"+cfg.Envs.BaseURL, id)
+		shortedURL = fmt.Sprintf("%s/%s", cfg.Envs.BaseURL, id)
 	}
 	longURL, ok := storage.Pit.Check(shortedURL)
 	if !ok {
