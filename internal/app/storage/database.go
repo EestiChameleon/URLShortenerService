@@ -59,7 +59,7 @@ func ShortURL() (shortedURL string, err error) {
 	if err != nil {
 		return "", err
 	}
-	if cfg.Envs.BaseURL == "" {
+	if cfg.Envs.BaseURL != "" {
 		shortedURL = fmt.Sprintf("%s/%x", cfg.Envs.BaseURL, b[0:])
 	} else {
 		shortedURL = fmt.Sprintf("%s/%x", ShortLinkHost, b[0:])
