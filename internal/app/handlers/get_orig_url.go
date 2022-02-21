@@ -11,6 +11,8 @@ import (
 )
 
 func GetOrigURL(w http.ResponseWriter, r *http.Request) {
+	log.Println(cfg.Envs.SrvAddr)
+	log.Println(cfg.Envs.BaseURL)
 	// get and check the passed ID
 	id := chi.URLParam(r, "id")
 	// if id is empty - chi router will provide 404 error as "unknown path GET /"
