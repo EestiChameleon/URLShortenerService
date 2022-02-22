@@ -90,13 +90,14 @@ func ShortURL() (shortedURL string, err error) {
 // Get stored pairs from file ----------------------------------------
 
 func (d *data) GetFile() error {
-	//change dir to fileDir
-	err := d.ChangeDir()
+	//create dir for storage file
+	err := d.CreateDir()
 	if err != nil {
 		return err
 	}
+
 	// create/open file
-	file, err := os.OpenFile(d.FileName, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0777)
+	file, err := os.OpenFile(cfg.Envs.FileStoragePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0777)
 	if err != nil {
 		return err
 	}
@@ -148,7 +149,7 @@ func (d *data) CloseFile() error {
 	return d.File.Close()
 }
 
-func (d *data) ChangeDir() error {
+func (d *data) CreateDir() error {
 	absPath, err := filepath.Abs("")
 	if err != nil {
 		return err
@@ -160,10 +161,10 @@ func (d *data) ChangeDir() error {
 		return err
 	}
 
-	err = os.Chdir(fileDir)
-	if err != nil {
-		return err
-	}
+	//err = os.Chdir(fileDir)
+	//if err != nil {
+	//	return err
+	//}
 
 	return nil
 }
