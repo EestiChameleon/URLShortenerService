@@ -15,17 +15,14 @@ import (
 type Config struct {
 	SrvAddr         string `env:"SERVER_ADDRESS" envDefault:"localhost:8080"`
 	BaseURL         string `env:"BASE_URL" envDefault:"http://localhost:8080"`
-	FileStoragePath string `env:"FILE_STORAGE_PATH" envDefault:"tmp/testFile.txt"`
-}
-
-func GetEnvs() Config {
-	var data Config
-	err := env.Parse(&data)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return data
+	FileStoragePath string `env:"FILE_STORAGE_PATH" envDefault:"testFile"`
 }
 
 var Envs Config
+
+func GetEnvs() {
+	err := env.Parse(&Envs)
+	if err != nil {
+		log.Fatal(err)
+	}
+}

@@ -13,7 +13,7 @@ import (
 const ShortLinkHost = "http://localhost:8080"
 
 var (
-	Pairs = NewFileData(getFileName(cfg.Envs.FileStoragePath))
+	Pairs = NewFileData(getFileName())
 )
 
 type data struct {
@@ -78,13 +78,12 @@ func ShortURL() (shortedURL string, err error) {
 	return
 }
 
-func getFileName(path string) string {
-	if path != "" {
-		s := strings.Split(path, "/")
-		return s[len(s)-1]
-	} else {
-		return "testFile.txt"
+func getFileName() string {
+	if cfg.Envs.FileStoragePath == "" {
+		cfg.GetEnvs()
 	}
+	s := strings.Split(cfg.Envs.FileStoragePath, "/")
+	return s[len(s)-1]
 }
 
 // Get stored pairs from file ----------------------------------------

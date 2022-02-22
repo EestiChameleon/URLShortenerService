@@ -60,7 +60,7 @@ func TestGetOrigURL(t *testing.T) {
 			if tt.request == "/test" {
 				storage.Pairs = storage.TestNewFileData()
 			}
-			cfg.Envs = cfg.GetEnvs()
+			cfg.GetEnvs()
 			// создаём новый Recorder
 			w := httptest.NewRecorder()
 			r := chi.NewRouter()

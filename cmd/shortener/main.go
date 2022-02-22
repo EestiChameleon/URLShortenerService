@@ -6,11 +6,12 @@ import (
 	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 )
 
-func main() {
-
+func init() {
 	// get envs
-	cfg.Envs = cfg.GetEnvs()
+	cfg.GetEnvs()
+}
 
+func main() {
 	// get stored pairs
 	if err := storage.Pairs.GetFile(); err != nil {
 		panic(err)
