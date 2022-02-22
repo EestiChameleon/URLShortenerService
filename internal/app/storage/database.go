@@ -1,50 +1,65 @@
 package storage
 
 import (
+	"bufio"
 	"crypto/rand"
 	"fmt"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
+	"io"
+	"os"
+	"strings"
 )
 
 const ShortLinkHost = "http://localhost:8080"
 
-type Store struct {
-	db map[string]string
+var (
+	Pairs = NewFileData(getFileName(cfg.Envs.FileStoragePath))
+)
+
+type data struct {
+	File     *os.File
+	FileName string
+	FileData map[string]string
 }
 
-func NewStore() *Store {
-	store := &Store{db: map[string]string{}}
-	return store
+func NewFileData(filename string) *data {
+	return &data{
+		FileName: filename,
+		FileData: map[string]string{},
+	}
 }
 
-var Pit = NewStore()
-
-//test pit
-func TestStore() *Store {
-	store := &Store{db: map[string]string{"http://localhost:8080/test": "https://jwt.io/"}}
-	return store
+//TestStore provides test data
+func TestNewFileData() *data {
+	return &data{
+		FileName: "testFile.txt",
+		FileData: map[string]string{"http://localhost:8080/test": "https://jwt.io/"},
+	}
 }
 
-func (k Store) Get(key string) string {
-	return k.db[key]
+func (d *data) Get(key string) string {
+	return d.FileData[key]
 }
 
-func (k Store) Put(value string) (key string, err error) {
+func (d *data) Put(value string) (key string, err error) {
 	key, err = ShortURL()
 	if err != nil {
 		return "", err
 	}
-	_, ok := k.Check(key)
+	_, ok := d.Check(key)
 	if !ok {
-		k.db[key] = value
+		err = d.AddDataAndSaveToFile(key, value)
+		if err != nil {
+			return "", err
+		}
 		return key, nil
 	} else {
-		return k.Put(value)
+		return d.Put(value)
 	}
 }
 
-func (k Store) Check(key string) (value string, ok bool) {
-	value, ok = k.db[key]
+func (d *data) Check(key string) (value string, ok bool) {
+	value, ok = d.FileData[key]
 	if ok {
 		return value, true
 	} else {
@@ -61,4 +76,68 @@ func ShortURL() (shortedURL string, err error) {
 	}
 	shortedURL = fmt.Sprintf("%s/%x", cfg.Envs.BaseURL, b[0:])
 	return
+}
+
+func getFileName(path string) string {
+	if path != "" {
+		s := strings.Split(path, "/")
+		return s[len(s)-1]
+	} else {
+		return "testFile.txt"
+	}
+}
+
+// Get stored pairs from file ----------------------------------------
+
+func (d *data) GetFile() error {
+	file, err := os.OpenFile(d.FileName, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0777)
+	if err != nil {
+		return err
+	}
+	sl := ""
+
+	d.File = file
+
+	// make a read buffer
+	r := bufio.NewReader(d.File)
+	// make a buffer to keep chunks that are read
+	buf := make([]byte, 1024)
+	for {
+		// read a chunk
+		n, err := r.Read(buf)
+		if err != nil && err != io.EOF {
+			panic(err)
+		}
+		if n == 0 {
+			break
+		}
+		sl += string(buf)
+	}
+	pairs := strings.Split(sl, "\n")
+	for _, el := range pairs {
+		if !strings.Contains(el, " : ") {
+			break
+		}
+		v := strings.Split(el, " : ")
+		d.FileData[v[0]] = v[1]
+	}
+
+	return nil
+}
+
+func (d *data) WriteFile(s string) error {
+
+	_, err := d.File.WriteString(s + "\n")
+	return err
+}
+
+func (d *data) AddDataAndSaveToFile(shortURL string, longURL string) error {
+
+	d.FileData[shortURL] = longURL
+	err := d.WriteFile(shortURL + " : " + longURL)
+	return err
+}
+
+func (d *data) CloseFile() error {
+	return d.File.Close()
 }

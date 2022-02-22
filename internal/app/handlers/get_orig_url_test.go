@@ -58,7 +58,7 @@ func TestGetOrigURL(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodGet, tt.request, nil)
 			if tt.request == "/test" {
-				storage.Pit = storage.TestStore()
+				storage.Pairs = storage.TestNewFileData()
 			}
 			cfg.Envs = cfg.GetEnvs()
 			// создаём новый Recorder
