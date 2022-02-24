@@ -17,6 +17,7 @@ func init() {
 func main() {
 	// get envs
 	cfg.GetEnvs()
+	flag.Parse()
 
 	// get stored pairs
 	if err := storage.Pairs.GetFile(); err != nil {
