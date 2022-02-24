@@ -70,7 +70,7 @@ func TestJSONShortURL(t *testing.T) {
 			// определяем хендлер
 			h := http.HandlerFunc(JSONShortURL)
 			// запускаем сервер
-			storage.Pairs = storage.TestNewFileData()
+			storage.Pairs = storage.TestNewFile()
 			if err := storage.Pairs.GetFile(); err != nil {
 				panic(err)
 			}

@@ -14,7 +14,7 @@ import (
 const ShortLinkHost = "http://localhost:8080"
 
 var (
-	Pairs = NewFileData()
+	Pairs = NewFile()
 )
 
 type data struct {
@@ -24,7 +24,7 @@ type data struct {
 	FileData map[string]string
 }
 
-func NewFileData() *data {
+func NewFile() *data {
 	if cfg.Envs.FileStoragePath == "" {
 		cfg.GetEnvs()
 	}
@@ -39,7 +39,7 @@ func NewFileData() *data {
 }
 
 //TestStore provides test data
-func TestNewFileData() *data {
+func TestNewFile() *data {
 	return &data{
 		FileName: "testFile.txt",
 		FileData: map[string]string{"http://localhost:8080/test": "https://jwt.io/"},
@@ -57,7 +57,7 @@ func (d *data) Put(value string) (key string, err error) {
 	}
 	_, ok := d.Check(key)
 	if !ok {
-		err = d.AddDataAndSaveToFile(key, value)
+		err = d.SaveNewData(key, value)
 		if err != nil {
 			return "", err
 		}
@@ -90,7 +90,7 @@ func ShortURL() (shortedURL string, err error) {
 // Get stored pairs from file ----------------------------------------
 
 func (d *data) GetFile() error {
-	//create dir for storage file
+	//create dir for storage file, If directory already exists, CreateDir does nothing and returns nil
 	err := d.CreateDir()
 	if err != nil {
 		return err
@@ -101,9 +101,8 @@ func (d *data) GetFile() error {
 	if err != nil {
 		return err
 	}
-	sl := ""
-
 	d.File = file
+	sl := ""
 
 	// make a read buffer
 	r := bufio.NewReader(d.File)
@@ -120,8 +119,10 @@ func (d *data) GetFile() error {
 		}
 		sl += string(buf)
 	}
+
 	pairs := strings.Split(sl, "\n")
 	for _, el := range pairs {
+		// catch the empty entry = EOF
 		if !strings.Contains(el, " : ") {
 			break
 		}
@@ -132,16 +133,9 @@ func (d *data) GetFile() error {
 	return nil
 }
 
-func (d *data) WriteFile(s string) error {
-
-	_, err := d.File.WriteString(s + "\n")
-	return err
-}
-
-func (d *data) AddDataAndSaveToFile(shortURL string, longURL string) error {
-
+func (d *data) SaveNewData(shortURL string, longURL string) error {
 	d.FileData[shortURL] = longURL
-	err := d.WriteFile(shortURL + " : " + longURL)
+	_, err := d.File.WriteString(shortURL + " : " + longURL + "\n")
 	return err
 }
 
