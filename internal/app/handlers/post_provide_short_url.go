@@ -34,8 +34,12 @@ func PostProvideShortURL(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// get a short url to pair with the orig url
-	shortUrl, err := storage.Pairs.Put(longURL)
+	shortURL, err := storage.Pairs.Put(longURL)
+	if err != nil {
+		log.Println("storage.Pairs.Put(longURL) error:", err)
+		resp.WriteString(w, http.StatusBadRequest, "invalid url")
+		return
+	}
 
-	resp.WriteString(w, http.StatusCreated, shortUrl)
-	return
+	resp.WriteString(w, http.StatusCreated, shortURL)
 }

@@ -58,5 +58,4 @@ func RedirectString(w http.ResponseWriter, s string) {
 	w.Header().Set(HeaderContentType, MIMETextPlainCharsetUTF8)
 	w.Header().Set(HeaderLocation, s)
 	w.WriteHeader(http.StatusTemporaryRedirect)
-	return
 }

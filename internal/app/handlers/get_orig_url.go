@@ -26,5 +26,4 @@ func GetOrigURL(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp.RedirectString(w, longURL)
-	return
 }
