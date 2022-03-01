@@ -1,17 +1,13 @@
 package storage
 
 import (
-	"bufio"
 	"crypto/rand"
+	"encoding/json"
 	"fmt"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
-	"io"
 	"os"
 	"path/filepath"
-	"strings"
 )
-
-const ShortLinkHost = "http://localhost:8080"
 
 var (
 	Pairs = NewFile()
@@ -26,7 +22,7 @@ type data struct {
 
 func NewFile() *data {
 	if cfg.Envs.FileStoragePath == "" {
-		cfg.GetEnvs()
+		cfg.GetEnvs() // ?!
 	}
 
 	dir, name := filepath.Split(cfg.Envs.FileStoragePath)
@@ -57,7 +53,7 @@ func (d *data) Put(value string) (key string, err error) {
 	}
 	_, ok := d.Check(key)
 	if !ok {
-		err = d.SaveNewData(key, value)
+		err = d.SaveData(key, value)
 		if err != nil {
 			return "", err
 		}
@@ -97,46 +93,41 @@ func (d *data) GetFile() error {
 	}
 
 	// create/open file
-	file, err := os.OpenFile(cfg.Envs.FileStoragePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0777)
+	file, err := os.OpenFile(cfg.Envs.FileStoragePath, os.O_RDWR|os.O_CREATE, 0777)
 	if err != nil {
 		return err
 	}
 	d.File = file
-	sl := ""
 
-	// make a read buffer
-	r := bufio.NewReader(d.File)
-	// make a buffer to keep chunks that are read
-	buf := make([]byte, 1024)
-	for {
-		// read a chunk
-		n, err := r.Read(buf)
-		if err != nil && err != io.EOF {
-			panic(err)
-		}
-		if n == 0 {
-			break
-		}
-		sl += string(buf)
+	bytes, err := os.ReadFile(cfg.Envs.FileStoragePath)
+	if err != nil {
+		return err
 	}
 
-	pairs := strings.Split(sl, "\n")
-	for _, el := range pairs {
-		// catch the empty entry = EOF
-		if !strings.Contains(el, " : ") {
-			break
+	if len(bytes) != 0 {
+		err = json.Unmarshal(bytes, &d.FileData)
+		if err != nil {
+			return err
 		}
-		v := strings.Split(el, " : ")
-		d.FileData[v[0]] = v[1]
 	}
 
 	return nil
 }
 
-func (d *data) SaveNewData(shortURL string, longURL string) error {
+func (d *data) SaveData(shortURL string, longURL string) error {
+	// save to map
 	d.FileData[shortURL] = longURL
-	_, err := d.File.WriteString(shortURL + " : " + longURL + "\n")
-	return err
+	// rewrite the file
+	jsonByte, err := json.Marshal(d.FileData)
+	if err != nil {
+		return err
+	}
+
+	_, err = d.File.Write(jsonByte)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (d *data) CloseFile() error {

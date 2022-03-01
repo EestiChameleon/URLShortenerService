@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	resp "github.com/EestiChameleon/URLShortenerService/internal/app/responses"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
@@ -22,23 +21,18 @@ type ResBody struct {
 // возвращает в ответ объект {"result": "<shorten_url>"}.
 func JSONShortURL(w http.ResponseWriter, r *http.Request) {
 	// check the content type - we are expecting an incoming JSON
-	if !strings.Contains(r.Header.Get(resp.HeaderContentType), resp.MIMEApplicationJSON) {
+	rContentType := r.Header.Get(resp.HeaderContentType)
+	if !strings.Contains(rContentType, resp.MIMEApplicationJSON) {
 		log.Println("invalid context-type: ", r.Header.Get(resp.HeaderContentType))
 		resp.WriteString(w, http.StatusBadRequest, "invalid data")
 		return
 	}
 
-	reqBody := ReqBody{}
-	//read the url in the body
-	bytes, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		log.Println("ioutil.ReadAll(r.Body) error:", err)
-		resp.WriteString(w, http.StatusBadRequest, "invalid data")
-		return
-	}
-	err = json.Unmarshal(bytes, &reqBody)
-	if err != nil {
-		log.Println("json.Unmarshal(bytes, &reqBody) error:", err)
+	// read body
+	var reqBody ReqBody
+
+	if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
+		log.Println("unable to parse body:", err)
 		resp.WriteString(w, http.StatusBadRequest, "invalid data")
 		return
 	}
