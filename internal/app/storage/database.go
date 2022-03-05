@@ -34,7 +34,7 @@ func NewFile() *data {
 	}
 }
 
-//TestStore provides test data
+//TestNewFile provides test data
 func TestNewFile() *data {
 	return &data{
 		FileName: "testFile.txt",
@@ -145,11 +145,6 @@ func (d *data) CreateDir() error {
 	if err != nil {
 		return err
 	}
-
-	//err = os.Chdir(fileDir)
-	//if err != nil {
-	//	return err
-	//}
 
 	return nil
 }

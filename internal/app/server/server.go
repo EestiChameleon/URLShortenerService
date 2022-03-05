@@ -2,6 +2,7 @@ package server
 
 import (
 	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
+	cmw "github.com/EestiChameleon/URLShortenerService/internal/app/custommw"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/handlers"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -9,7 +10,7 @@ import (
 	"net/http"
 )
 
-func Start() {
+func Start() error {
 	// Chi instance
 	router := chi.NewRouter()
 
@@ -24,6 +25,8 @@ func Start() {
 	// processing should be stopped.
 	//router.Use(middleware.Timeout(60 * time.Second))
 
+	router.Use(cmw.ArchiveGZIP)
+
 	// Routes
 	router.Get("/{id}", handlers.GetOrigURL)
 
@@ -37,7 +40,5 @@ func Start() {
 		//ReadTimeout: 30 * time.Second, // customize http.Server timeouts
 	}
 
-	if err := s.ListenAndServe(); err != http.ErrServerClosed {
-		panic(err)
-	}
+	return s.ListenAndServe()
 }
