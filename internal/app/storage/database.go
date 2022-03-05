@@ -36,8 +36,12 @@ func NewFile() *data {
 
 //TestNewFile provides test data
 func TestNewFile() *data {
+	cfg.Envs.FileStoragePath = "test/fileTest"
+	dir, name := filepath.Split(cfg.Envs.FileStoragePath)
+
 	return &data{
-		FileName: "testFile.txt",
+		FileName: name,
+		FileDir:  dir,
 		FileData: map[string]string{"http://localhost:8080/test": "https://jwt.io/"},
 	}
 }

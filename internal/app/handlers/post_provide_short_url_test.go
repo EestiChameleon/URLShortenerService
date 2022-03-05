@@ -2,11 +2,13 @@ package handlers
 
 import (
 	resp "github.com/EestiChameleon/URLShortenerService/internal/app/responses"
+	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 )
@@ -68,6 +70,11 @@ func TestPostProvideShortURL(t *testing.T) {
 			// определяем хендлер
 			h := http.HandlerFunc(PostProvideShortURL)
 			// запускаем сервер
+			storage.Pairs = storage.TestNewFile()
+			if err := storage.Pairs.GetFile(); err != nil {
+				panic(err)
+			}
+			defer os.Remove(storage.Pairs.File.Name())
 			h.ServeHTTP(w, request)
 			res := w.Result()
 
