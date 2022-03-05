@@ -7,10 +7,12 @@ import (
 
 const (
 	// HEADERS ------------------------------------
-	HeaderContentType   = "Content-Type"
-	HeaderLocation      = "Location"
-	HeaderXForwardedFor = "X-Forwarded-For"
-	HeaderXRealIP       = "X-Real-IP"
+	HeaderContentType     = "Content-Type"
+	HeaderLocation        = "Location"
+	HeaderXForwardedFor   = "X-Forwarded-For"
+	HeaderXRealIP         = "X-Real-IP"
+	HeaderAcceptEncoding  = "Accept-Encoding"
+	HeaderContentEncoding = "Content-Encoding"
 
 	// CONTENT TYPE -------------------------------------------------------------
 	charsetUTF8 = "charset=utf-8"

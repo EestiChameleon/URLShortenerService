@@ -25,13 +25,11 @@ func Start() error {
 	// processing should be stopped.
 	//router.Use(middleware.Timeout(60 * time.Second))
 
-	router.Use(cmw.ArchiveGZIP)
-
 	// Routes
-	router.Get("/{id}", handlers.GetOrigURL)
+	router.With(cmw.RequestGZIP, cmw.ResponseGZIP).Get("/{id}", handlers.GetOrigURL)
 
-	router.Post("/", handlers.PostProvideShortURL)
-	router.Post("/api/shorten", handlers.JSONShortURL)
+	router.With(cmw.RequestGZIP, cmw.ResponseGZIP).Post("/", handlers.PostProvideShortURL)
+	router.With(cmw.RequestGZIP, cmw.ResponseGZIP).Post("/api/shorten", handlers.JSONShortURL)
 
 	// Start server
 	s := http.Server{
