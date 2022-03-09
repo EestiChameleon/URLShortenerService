@@ -68,7 +68,7 @@ func TestPostProvideShortURL(t *testing.T) {
 			// создаём новый Recorder
 			w := httptest.NewRecorder()
 			// определяем хендлер
-			h := http.HandlerFunc(PostProvideShortURL)
+			h := testMW(http.HandlerFunc(PostProvideShortURL))
 			// запускаем сервер
 			storage.Pairs = storage.TestNewFile()
 			if err := storage.Pairs.GetFile(); err != nil {

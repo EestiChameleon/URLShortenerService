@@ -30,9 +30,15 @@ func JSONShortURL(w http.ResponseWriter, r *http.Request) {
 
 	// read body
 	var reqBody ReqBody
+	byteBody, ok := r.Context().Value("bodyURL").([]byte)
+	if !ok {
+		log.Println("unable to decode body: bodyURL missing in the context")
+		resp.WriteString(w, http.StatusBadRequest, "invalid data")
+		return
+	}
 
-	if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
-		log.Println("unable to parse body:", err)
+	if err := json.Unmarshal(byteBody, &reqBody); err != nil {
+		log.Println("unable to unmarshal body:", err)
 		resp.WriteString(w, http.StatusBadRequest, "invalid data")
 		return
 	}

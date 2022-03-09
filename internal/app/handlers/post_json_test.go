@@ -1,11 +1,14 @@
 package handlers
 
 import (
+	"context"
 	resp "github.com/EestiChameleon/URLShortenerService/internal/app/responses"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -68,11 +71,11 @@ func TestJSONShortURL(t *testing.T) {
 			// создаём новый Recorder
 			w := httptest.NewRecorder()
 			// определяем хендлер
-			h := http.HandlerFunc(JSONShortURL)
+			h := testMW(http.HandlerFunc(JSONShortURL))
 			// запускаем сервер
 			storage.Pairs = storage.TestNewFile()
 			if err := storage.Pairs.GetFile(); err != nil {
-				panic(err)
+				log.Fatal(err)
 			}
 			defer os.Remove(storage.Pairs.File.Name())
 			h.ServeHTTP(w, request)
@@ -93,4 +96,15 @@ func TestJSONShortURL(t *testing.T) {
 			}
 		})
 	}
+}
+
+func testMW(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		byteBody, err := io.ReadAll(r.Body)
+		if err != nil {
+			log.Fatal(err)
+		}
+		ctx := context.WithValue(r.Context(), "bodyURL", byteBody)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
 }

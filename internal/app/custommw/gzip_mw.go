@@ -2,9 +2,9 @@ package custommw
 
 import (
 	"compress/gzip"
+	"context"
 	resp "github.com/EestiChameleon/URLShortenerService/internal/app/responses"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
@@ -24,17 +24,14 @@ func (w gzipWriter) Write(b []byte) (int, error) {
 // when header Accept-Encoding contains gzip and set w.header Content-Encoding = gzip
 func ResponseGZIP(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// проверяем, что клиент поддерживает gzip-сжатие
 		if !strings.Contains(r.Header.Get(resp.HeaderAcceptEncoding), "gzip") {
 			log.Println("request accept-encoding != gzip")
-			// если gzip не поддерживается, передаём управление
-			// дальше без изменений
 			next.ServeHTTP(w, r)
 			return
 		}
-		log.Println("request accept-encoding = gzip")
+		log.Println("request accept-encoding contains gzip")
 		// создаём gzip.Writer поверх текущего w
-		gz, err := gzip.NewWriterLevel(w, gzip.BestSpeed)
+		gz, err := gzip.NewWriterLevel(w, gzip.DefaultCompression)
 		if err != nil {
 			resp.NoContent(w, http.StatusBadRequest)
 			return
@@ -42,40 +39,35 @@ func ResponseGZIP(next http.Handler) http.Handler {
 		defer gz.Close()
 
 		w.Header().Set("Content-Encoding", "gzip")
-		log.Println("w.header Content-encoding = gzip")
-		// передаём обработчику страницы переменную типа gzipWriter для вывода данных
+		log.Println("response header set -> Content-encoding = gzip")
 		next.ServeHTTP(gzipWriter{ResponseWriter: w, Writer: gz}, r)
-		log.Println("passed gzip w -> next")
 	})
 }
 
 // RequestGZIP - middleware that decompress request.body when header Content-Encoding = gzip
 func RequestGZIP(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		hce := r.Header.Get(resp.HeaderContentEncoding)
-		log.Printf("request header content encoding: %s", hce)
-		if r.Header.Get(resp.HeaderContentEncoding) == "gzip" {
-			log.Println("start decompressing")
-
-			if rb, err := ioutil.ReadAll(r.Body); err != nil {
-				log.Println("failed to read the body")
-				resp.WriteString(w, http.StatusInternalServerError, err.Error())
-				return
-			} else {
-				log.Println(string(rb))
-			}
-
+		var reader io.Reader
+		if strings.Contains(r.Header.Get("Content-Encoding"), "gzip") {
 			gz, err := gzip.NewReader(r.Body)
 			if err != nil {
-				log.Println("failed to read the body 2 ")
-				resp.WriteString(w, http.StatusInternalServerError, err.Error())
+				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
-			log.Println("request body changed with decompressed")
-			r.Body = gz
+			reader = gz
 			defer gz.Close()
+		} else {
+			reader = r.Body
+			defer r.Body.Close()
 		}
 
-		next.ServeHTTP(w, r)
+		bodyRaw, err := io.ReadAll(reader)
+		if err != nil || len(bodyRaw) == 0 {
+			http.Error(w, "url missing in the body", http.StatusBadRequest)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), "bodyURL", bodyRaw)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

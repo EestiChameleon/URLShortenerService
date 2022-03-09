@@ -26,7 +26,7 @@ func Start() error {
 	//router.Use(middleware.Timeout(60 * time.Second))
 
 	// Routes
-	router.With(cmw.RequestGZIP, cmw.ResponseGZIP).Get("/{id}", handlers.GetOrigURL)
+	router.With(cmw.ResponseGZIP).Get("/{id}", handlers.GetOrigURL)
 
 	router.With(cmw.RequestGZIP, cmw.ResponseGZIP).Post("/", handlers.PostProvideShortURL)
 	router.With(cmw.RequestGZIP, cmw.ResponseGZIP).Post("/api/shorten", handlers.JSONShortURL)

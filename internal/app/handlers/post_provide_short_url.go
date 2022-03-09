@@ -3,7 +3,6 @@ package handlers
 import (
 	resp "github.com/EestiChameleon/URLShortenerService/internal/app/responses"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
@@ -17,16 +16,16 @@ func PostProvideShortURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//read the url in the body
-	bytes, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		log.Println("ioutil.ReadAll(r.Body) error:", err)
+	// read body
+	byteBody, ok := r.Context().Value("bodyURL").([]byte)
+	if !ok {
+		log.Println("unable to decode body: bodyURL missing in the context")
 		resp.WriteString(w, http.StatusBadRequest, "invalid url")
 		return
 	}
 
 	// check if it's not empty
-	longURL := string(bytes)
+	longURL := string(byteBody)
 	if longURL == "" {
 		log.Println("empty incoming url")
 		resp.WriteString(w, http.StatusBadRequest, "invalid url")
