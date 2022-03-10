@@ -27,10 +27,12 @@ func CheckCookie(next http.Handler) http.Handler {
 			storage.User.ID = userID
 			log.Print("UserID cookie was missing - added, new storage.User.ID saved")
 			next.ServeHTTP(w, r)
+			return
 		}
-
+		log.Println(cookie)
 		userID, err := storage.JWTDecode(cookie.Value, "userID")
 		if err != nil {
+			log.Println(err)
 			resp.NoContent(w, http.StatusInternalServerError)
 			return
 		}
