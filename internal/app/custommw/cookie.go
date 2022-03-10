@@ -24,8 +24,8 @@ func CheckCookie(next http.Handler) http.Handler {
 				return
 			}
 			http.SetCookie(w, resp.CreateCookie("UserID", url.QueryEscape(encID)))
-			resp.NoContent(w, http.StatusUnauthorized)
-			return
+			storage.User.ID = userID
+			next.ServeHTTP(w, r)
 		}
 
 		userID, err := storage.JWTDecode(cookie.Value, "userID")
