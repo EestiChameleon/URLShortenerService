@@ -25,6 +25,7 @@ func CheckCookie(next http.Handler) http.Handler {
 			}
 			http.SetCookie(w, resp.CreateCookie("UserID", url.QueryEscape(encID)))
 			storage.User.ID = userID
+			log.Print("UserID cookie was missing - added, new storage.User.ID saved")
 			next.ServeHTTP(w, r)
 		}
 
@@ -35,6 +36,7 @@ func CheckCookie(next http.Handler) http.Handler {
 		}
 
 		storage.User.ID = userID
+		log.Print("UserID cookie found, storage.User.ID saved")
 		next.ServeHTTP(w, r)
 	})
 }

@@ -51,17 +51,6 @@ func TestPostProvideShortURL(t *testing.T) {
 				statusCode:  400,
 			},
 		},
-		{
-			name:        "POST test #3: wrong content type -> 400",
-			contentType: resp.MIMEApplicationJSON,
-			request:     "http://localhost:8080/",
-			body:        "https://jwt.io/",
-			want: want{
-				contentType: resp.MIMETextPlainCharsetUTF8,
-				statusCode:  400,
-				respMessage: "invalid data",
-			},
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

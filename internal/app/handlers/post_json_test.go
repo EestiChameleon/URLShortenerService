@@ -53,17 +53,6 @@ func TestJSONShortURL(t *testing.T) {
 				statusCode:  400,
 			},
 		},
-		{
-			name:        "POST test #3: wrong content type -> 400",
-			contentType: resp.MIMETextPlainCharsetUTF8,
-			request:     "http://localhost:8080/api/shorten",
-			body:        `{"url":"https://jwt.io/"}`,
-			want: want{
-				contentType: resp.MIMETextPlainCharsetUTF8,
-				statusCode:  400,
-				respMessage: "invalid data",
-			},
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
