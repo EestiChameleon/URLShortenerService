@@ -5,16 +5,15 @@ import (
 	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 	"log"
 	"net/http"
-	"strings"
 )
 
 func PostProvideShortURL(w http.ResponseWriter, r *http.Request) {
 	// check the content type - we are expecting an incoming text url
-	if !strings.Contains(r.Header.Get("Content-Type"), resp.MIMETextPlain) {
-		log.Println("invalid context-type: ", r.Header.Get("Content-Type"))
-		resp.WriteString(w, http.StatusBadRequest, "invalid data")
-		return
-	}
+	//if !strings.Contains(r.Header.Get("Content-Type"), resp.MIMETextPlain) {
+	//	log.Println("invalid context-type: ", r.Header.Get("Content-Type"))
+	//	resp.WriteString(w, http.StatusBadRequest, "invalid data")
+	//	return
+	//}
 
 	// read body
 	byteBody, ok := r.Context().Value("bodyURL").([]byte)

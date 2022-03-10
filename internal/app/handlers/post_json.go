@@ -6,7 +6,6 @@ import (
 	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 	"log"
 	"net/http"
-	"strings"
 )
 
 type ReqBody struct {
@@ -21,12 +20,12 @@ type ResBody struct {
 // возвращает в ответ объект {"result": "<shorten_url>"}.
 func JSONShortURL(w http.ResponseWriter, r *http.Request) {
 	// check the content type - we are expecting an incoming JSON
-	rContentType := r.Header.Get(resp.HeaderContentType)
-	if !strings.Contains(rContentType, resp.MIMEApplicationJSON) {
-		log.Println("invalid context-type: ", r.Header.Get(resp.HeaderContentType))
-		resp.WriteString(w, http.StatusBadRequest, "invalid data")
-		return
-	}
+	//rContentType := r.Header.Get(resp.HeaderContentType)
+	//if !strings.Contains(rContentType, resp.MIMEApplicationJSON) {
+	//	log.Println("invalid context-type: ", r.Header.Get(resp.HeaderContentType))
+	//	resp.WriteString(w, http.StatusBadRequest, "invalid data")
+	//	return
+	//}
 
 	// read body
 	var reqBody ReqBody

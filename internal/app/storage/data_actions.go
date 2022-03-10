@@ -62,7 +62,6 @@ func JWTEncode(key, value string) (string, error) {
 
 func JWTDecode(token, key string) (string, error) {
 	algorithm := jwt.HmacSha256(cfg.Envs.CryptoKey)
-	claims := jwt.NewClaim()
 
 	if err := algorithm.Validate(token); err != nil {
 		log.Println("jwt decode validate", err)
