@@ -3,6 +3,7 @@ package responses
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 )
 
 const (
@@ -60,4 +61,14 @@ func RedirectString(w http.ResponseWriter, s string) {
 	w.Header().Set(HeaderContentType, MIMETextPlainCharsetUTF8)
 	w.Header().Set(HeaderLocation, s)
 	w.WriteHeader(http.StatusTemporaryRedirect)
+}
+
+//CreateCookie func provides a cookie "key=value" based on given params
+func CreateCookie(key string, value string) *http.Cookie {
+	return &http.Cookie{
+		Name:    key,
+		Value:   value,
+		Path:    "/",
+		Expires: time.Now().Add(time.Second * 60 * 60),
+	}
 }

@@ -52,7 +52,7 @@ func JSONShortURL(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// get a short url to pair with the orig url
-	shortURL, err := storage.Pairs.Put(longURL)
+	shortURL, err := storage.User.Put(longURL)
 	if err != nil {
 		log.Println("storage.Pairs.Put(longURL) error:", err)
 		resp.WriteString(w, http.StatusBadRequest, "invalid data")

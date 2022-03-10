@@ -19,6 +19,7 @@ func Start() error {
 	router.Use(middleware.RealIP)
 	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
+	router.Use(cmw.CheckCookie)
 
 	// Set a timeout value on the request context (ctx), that will signal
 	// through ctx.Done() that the request has timed out and further
@@ -27,6 +28,7 @@ func Start() error {
 
 	// Routes
 	router.With(cmw.ResponseGZIP).Get("/{id}", handlers.GetOrigURL)
+	router.With(cmw.ResponseGZIP).Get("/api/user/urls", handlers.GetAllPairs)
 
 	router.With(cmw.RequestGZIP, cmw.ResponseGZIP).Post("/", handlers.PostProvideShortURL)
 	router.With(cmw.RequestGZIP, cmw.ResponseGZIP).Post("/api/shorten", handlers.JSONShortURL)

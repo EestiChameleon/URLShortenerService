@@ -13,12 +13,11 @@ import (
 	"testing"
 )
 
-func TestGetOrigURL(t *testing.T) {
+func TestGetAllPairs(t *testing.T) {
 	type want struct {
-		contentType    string
-		statusCode     int
-		respMessage    string
-		headerLocation string
+		contentType string
+		statusCode  int
+		respMessage string
 	}
 
 	tests := []struct {
@@ -27,12 +26,11 @@ func TestGetOrigURL(t *testing.T) {
 		want    want
 	}{
 		{
-			name:    "GET test #1: test url -> 307",
-			request: "/test",
+			name:    "GET test #1: no user id - no content -> 204",
+			request: "/",
 			want: want{
-				contentType:    resp.MIMETextPlainCharsetUTF8,
-				statusCode:     307,
-				headerLocation: "https://jwt.io/",
+				contentType: resp.MIMETextPlainCharsetUTF8,
+				statusCode:  307,
 			},
 		},
 		{
