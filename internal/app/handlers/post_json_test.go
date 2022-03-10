@@ -45,7 +45,7 @@ func TestJSONShortURL(t *testing.T) {
 		{
 			name:        "POST test #2: wrong incoming json -> 400",
 			contentType: resp.MIMEApplicationJSONCharsetUTF8,
-			request:     "http://localhost:8080/",
+			request:     "http://localhost:8080/api/shorten",
 			body:        `{"urly":"https://jwt.io/"}`,
 			want: want{
 				contentType: resp.MIMETextPlainCharsetUTF8,
@@ -56,7 +56,7 @@ func TestJSONShortURL(t *testing.T) {
 		{
 			name:        "POST test #3: wrong content type -> 400",
 			contentType: resp.MIMETextPlainCharsetUTF8,
-			request:     "http://localhost:8080/",
+			request:     "http://localhost:8080/api/shorten",
 			body:        `{"url":"https://jwt.io/"}`,
 			want: want{
 				contentType: resp.MIMETextPlainCharsetUTF8,
