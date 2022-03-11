@@ -59,7 +59,7 @@ func TestPostProvideShortURL(t *testing.T) {
 			// создаём новый Recorder
 			w := httptest.NewRecorder()
 			// определяем хендлер
-			h := testMW(http.HandlerFunc(PostProvideShortURL))
+			h := http.HandlerFunc(PostProvideShortURL)
 			// запускаем сервер
 			storage.User = storage.TestUser()
 			if err := storage.User.InitTestStorage(); err != nil {

@@ -1,8 +1,10 @@
 package storage
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"log"
 	"os"
 )
@@ -20,6 +22,7 @@ type Session struct {
 	ID       string
 	Pairs    map[string]string
 	UserData map[string][]Pair
+	DB       *pgxpool.Pool
 }
 
 func NewSeesion() *Session {
@@ -40,12 +43,6 @@ func (s *Session) InitStorage() error {
 			return err
 		}
 	}
-
-	//create dir for storage file, If directory already exists, CreateDir does nothing and returns nil
-	//err := s.CreateDir()
-	//if err != nil {
-	//	return err
-	//}
 
 	// create/open file
 	log.Println("database InitStorage: openfile")
@@ -71,12 +68,19 @@ func (s *Session) InitStorage() error {
 		}
 	}
 
+	log.Println("database InitStorage: connect to DB")
+	if err = s.ConnectToDB(); err != nil {
+		log.Println(err)
+		return err
+	}
+
 	log.Println("database InitStorage: end")
 	return nil
 }
 
 func (s *Session) CloseStorage() error {
 	log.Println("database CloseStorage: start")
+	s.DisconnectFromDB()
 	return s.UpdateFile()
 }
 
@@ -141,6 +145,35 @@ func (s *Session) UpdateFile() error {
 	}
 	log.Println("database UpdateFile: end")
 	return nil
+}
+
+//-------------------- DATABASE --------------------
+
+// ConnectToDB method initialize connection to the indicated DB
+func (s *Session) ConnectToDB() error {
+	log.Println("database ConnectToDB: start")
+	conn, err := pgxpool.Connect(context.Background(), cfg.Envs.DatabaseDSN)
+	if err != nil {
+		log.Printf("database ConnectToDB: Unable to connect to database: %v\n", err)
+		return err
+	}
+
+	s.DB = conn
+	log.Println("database ConnectToDB: connected. end")
+	return nil
+}
+
+// DisconnectFromDB closes all connections in the DB pool
+func (s *Session) DisconnectFromDB() {
+	log.Println("database DisconnectFromDB: start")
+	s.DB.Close()
+}
+
+// PingDB executes an empty sql statement against DB pool.
+// If the sql returns without error, the database Ping is considered successful, otherwise, the error is returned.
+func (s *Session) PingDB() error {
+	log.Println("database PingDB: start")
+	return s.DB.Ping(context.Background())
 }
 
 //-------------------- TEST DATA --------------------
