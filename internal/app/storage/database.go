@@ -15,7 +15,7 @@ var (
 
 type Pair struct {
 	ShortURL string `json:"short_url"`
-	OrigURL  string `json:"orig_url"`
+	OrigURL  string `json:"original_url"`
 }
 
 type Session struct {
