@@ -23,6 +23,7 @@ type Session struct {
 }
 
 func NewSeesion() *Session {
+	log.Println("database NewSessions: start")
 	return &Session{
 		ID:       "",
 		Pairs:    map[string]string{},
@@ -32,6 +33,7 @@ func NewSeesion() *Session {
 
 // InitStorage method parse data from file and initiate all storage dependencies
 func (s *Session) InitStorage() error {
+	log.Println("database InitStorage: start")
 	if cfg.Envs.FileStoragePath == "" {
 		if err := cfg.GetEnvs(); err != nil {
 			log.Println(err)
@@ -46,6 +48,7 @@ func (s *Session) InitStorage() error {
 	//}
 
 	// create/open file
+	log.Println("database InitStorage: openfile")
 	f, err := os.OpenFile(cfg.Envs.FileStoragePath, os.O_RDONLY|os.O_CREATE, 0777)
 	if err != nil {
 		log.Println(err)
@@ -53,12 +56,14 @@ func (s *Session) InitStorage() error {
 	}
 	defer f.Close()
 
+	log.Println("database InitStorage: read file")
 	bytes, err := os.ReadFile(cfg.Envs.FileStoragePath)
 	if err != nil {
 		log.Println(err)
 		return err
 	}
 
+	log.Println("database InitStorage: check len(bytes)")
 	if len(bytes) != 0 {
 		if err = json.Unmarshal(bytes, &s.Pairs); err != nil {
 			log.Println(err)
@@ -66,41 +71,53 @@ func (s *Session) InitStorage() error {
 		}
 	}
 
+	log.Println("database InitStorage: end")
 	return nil
 }
 
 func (s *Session) CloseStorage() error {
+	log.Println("database CloseStorage: start")
 	return s.UpdateFile()
 }
 
 func (s *Session) Put(origURL string) (shortURL string, err error) {
+	log.Println("database Put: start")
+	log.Println("database Put: origURL", origURL)
 	shortURL, err = ShortURL()
 	if err != nil {
 		log.Println(err)
 		return ``, err
 	}
+
+	log.Println("database Put: check for already existing shortURL")
 	_, ok := s.Pairs[shortURL]
 	if !ok {
 		// save data
+		log.Printf("database Put: save to Pairs. ShortURL: %s, OrigURL: %s\n", shortURL, origURL)
 		s.Pairs[shortURL] = origURL
+		log.Printf("database Put: append to UserData. ID: %s, ShortURL: %s, OrigURL: %s\n", s.ID, shortURL, origURL)
 		s.UserData[s.ID] = append(s.UserData[s.ID], Pair{
 			ShortURL: shortURL,
 			OrigURL:  origURL,
 		})
 
 		// update file
+		log.Println("database Put: UpdateFile")
 		if err = s.UpdateFile(); err != nil {
 			log.Println(err)
 			return ``, err
 		}
 
+		log.Println("database Put: end. ShortURL: ", shortURL)
 		return shortURL, nil
 	} else {
+		log.Println("database Put: shortURL already exists in Pairs -> s.Put(origURL)")
 		return s.Put(origURL)
 	}
 }
 
 func (s *Session) UpdateFile() error {
+	log.Println("database UpdateFile: start")
 	// open & rewrite file
 	f, err := os.OpenFile(cfg.Envs.FileStoragePath, os.O_WRONLY, 0777)
 	if err != nil {
@@ -110,18 +127,19 @@ func (s *Session) UpdateFile() error {
 	defer f.Close()
 
 	// prepare data
+	log.Println("database UpdateFile: json.Marshal(s.Pairs)")
 	jsonByte, err := json.Marshal(s.Pairs)
 	if err != nil {
 		log.Println(err)
 		return err
 	}
-
+	log.Println("database UpdateFile: f.Write(jsonByte)")
 	_, err = f.Write(jsonByte)
 	if err != nil {
 		log.Println(err)
 		return err
 	}
-
+	log.Println("database UpdateFile: end")
 	return nil
 }
 

@@ -12,18 +12,20 @@ import (
 
 func GetOrigURL(w http.ResponseWriter, r *http.Request) {
 	// get and check the passed ID
+	log.Println("GetOrigURL start: search id")
 	id := chi.URLParam(r, "id")
 	// if id is empty - chi router will provide 404 error as "unknown path GET /"
 
 	// check for the short url in map
 	shortURL := fmt.Sprintf("%s/%s", cfg.Envs.BaseURL, id)
-
+	log.Println("GetOrigURL: search for shortURL pair - ", shortURL)
 	origURL, ok := storage.User.Pairs[shortURL]
 	if !ok {
-		log.Println("shorten URL not found")
+		log.Println("GetOrigURL: orig URL not found -> 400")
 		resp.WriteString(w, http.StatusBadRequest, "invalid id")
 		return
 	}
 
+	log.Println("GetOrigURL end: orig URL found -> 307")
 	resp.RedirectString(w, origURL)
 }

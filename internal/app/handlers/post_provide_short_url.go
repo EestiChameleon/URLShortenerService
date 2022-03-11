@@ -3,41 +3,38 @@ package handlers
 import (
 	resp "github.com/EestiChameleon/URLShortenerService/internal/app/responses"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
+	"io"
 	"log"
 	"net/http"
 )
 
 func PostProvideShortURL(w http.ResponseWriter, r *http.Request) {
-	// check the content type - we are expecting an incoming text url
-	//if !strings.Contains(r.Header.Get("Content-Type"), resp.MIMETextPlain) {
-	//	log.Println("invalid context-type: ", r.Header.Get("Content-Type"))
-	//	resp.WriteString(w, http.StatusBadRequest, "invalid data")
-	//	return
-	//}
-
 	// read body
-	byteBody, ok := r.Context().Value("bodyURL").([]byte)
-	if !ok {
-		log.Println("unable to decode body: bodyURL missing in the context")
-		resp.WriteString(w, http.StatusBadRequest, "invalid url")
+	log.Println("PostProvideShortURL: start - read r.Body")
+	byteBody, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Println("PostProvideShortURL: unable to read body:", err)
+		resp.WriteString(w, http.StatusBadRequest, "invalid data")
 		return
 	}
 
 	// check if it's not empty
-	longURL := string(byteBody)
-	if longURL == "" {
-		log.Println("empty incoming url")
+	log.Println("PostProvideShortURL: check byteBody")
+	origURL := string(byteBody)
+	if origURL == "" {
+		log.Println("PostProvideShortURL: empty incoming url")
 		resp.WriteString(w, http.StatusBadRequest, "invalid url")
 		return
 	}
 
 	// get a short url to pair with the orig url
-	shortURL, err := storage.User.Put(longURL)
+	log.Println("PostProvideShortURL: storage.User.Put(origURL) - ", origURL)
+	shortURL, err := storage.User.Put(origURL)
 	if err != nil {
-		log.Println("storage.Pairs.Put(longURL) error:", err)
+		log.Println("PostProvideShortURL: storage.Pairs.Put(longURL) error:", err)
 		resp.WriteString(w, http.StatusBadRequest, "invalid url")
 		return
 	}
-
+	log.Println("PostProvideShortURL: end")
 	resp.WriteString(w, http.StatusCreated, shortURL)
 }

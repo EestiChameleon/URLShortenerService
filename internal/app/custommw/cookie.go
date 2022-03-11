@@ -5,40 +5,41 @@ import (
 	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 	"log"
 	"net/http"
-	"net/url"
 )
 
 func CheckCookie(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Println("CheckCookie: start getcookie")
 		cookie, err := r.Cookie("UserID")
 		if err != nil {
-			log.Println(err)
+			log.Println("CheckCookie r.Cookie(\"UserID\") err: ", err)
 			userID, err := storage.CreateUserID()
 			if err != nil {
 				resp.NoContent(w, http.StatusInternalServerError)
 				return
 			}
-			encID, err := storage.JWTEncode("userID", userID)
+			log.Println("CheckCookie storage.User.ID created & saved: ", userID)
+			storage.User.ID = userID
+			token, err := storage.JWTEncode("userID", userID)
 			if err != nil {
 				resp.NoContent(w, http.StatusInternalServerError)
 				return
 			}
-			http.SetCookie(w, resp.CreateCookie("UserID", url.QueryEscape(encID)))
-			storage.User.ID = userID
-			log.Print("UserID cookie was missing - added, new storage.User.ID saved")
+			http.SetCookie(w, resp.CreateCookie("UserID", token))
+			log.Print("UserID cookie added, new storage.User.ID saved")
 			next.ServeHTTP(w, r)
 			return
 		}
-		log.Println(cookie)
+		log.Println("CheckCookie: cookie found - ", cookie)
 		userID, err := storage.JWTDecode(cookie.Value, "userID")
 		if err != nil {
-			log.Println(err)
+			log.Println("cookie JWTDecode err: ", err)
 			resp.NoContent(w, http.StatusInternalServerError)
 			return
 		}
-
+		log.Println("CheckCookie storage.User.ID decoded & saved: ", userID)
 		storage.User.ID = userID
-		log.Print("UserID cookie found, storage.User.ID saved")
+		log.Print("UserID cookie found & decoded, storage.User.ID saved")
 		next.ServeHTTP(w, r)
 	})
 }

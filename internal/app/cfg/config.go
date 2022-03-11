@@ -13,6 +13,8 @@ type Config struct {
 
 var Envs Config
 
+type ContextKey string
+
 func GetEnvs() error {
 	return env.Parse(&Envs)
 }

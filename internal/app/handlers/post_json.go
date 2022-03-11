@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	resp "github.com/EestiChameleon/URLShortenerService/internal/app/responses"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
+	"io"
 	"log"
 	"net/http"
 )
@@ -19,25 +20,19 @@ type ResBody struct {
 // JSONShortURL принимает в теле запроса JSON-объект {"url": "<some_url>"}
 // возвращает в ответ объект {"result": "<shorten_url>"}.
 func JSONShortURL(w http.ResponseWriter, r *http.Request) {
-	// check the content type - we are expecting an incoming JSON
-	//rContentType := r.Header.Get(resp.HeaderContentType)
-	//if !strings.Contains(rContentType, resp.MIMEApplicationJSON) {
-	//	log.Println("invalid context-type: ", r.Header.Get(resp.HeaderContentType))
-	//	resp.WriteString(w, http.StatusBadRequest, "invalid data")
-	//	return
-	//}
-
 	// read body
 	var reqBody ReqBody
-	byteBody, ok := r.Context().Value("bodyURL").([]byte)
-	if !ok {
-		log.Println("unable to decode body: bodyURL missing in the context")
+	log.Println("JSONShortURL start: read r.Body")
+	byteBody, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Println("JSONShortURL: unable to read body:", err)
 		resp.WriteString(w, http.StatusBadRequest, "invalid data")
 		return
 	}
 
-	if err := json.Unmarshal(byteBody, &reqBody); err != nil {
-		log.Println("unable to unmarshal body:", err)
+	log.Println("JSONShortURL: json.Unmarshal(byteBody, &reqBody)")
+	if err = json.Unmarshal(byteBody, &reqBody); err != nil {
+		log.Println("JSONShortURL: unable to unmarshal body:", err)
 		resp.WriteString(w, http.StatusBadRequest, "invalid data")
 		return
 	}
@@ -45,7 +40,7 @@ func JSONShortURL(w http.ResponseWriter, r *http.Request) {
 	// check if it's not empty
 	longURL := reqBody.URL
 	if longURL == "" {
-		log.Println("empty incoming url")
+		log.Println("JSONShortURL: empty r.Body")
 		resp.WriteString(w, http.StatusBadRequest, "invalid data")
 		return
 	}
@@ -53,10 +48,11 @@ func JSONShortURL(w http.ResponseWriter, r *http.Request) {
 	// get a short url to pair with the orig url
 	shortURL, err := storage.User.Put(longURL)
 	if err != nil {
-		log.Println("storage.Pairs.Put(longURL) error:", err)
+		log.Println("JSONShortURL: storage.Pairs.Put(longURL) error:", err)
 		resp.WriteString(w, http.StatusBadRequest, "invalid data")
 		return
 	}
 
+	log.Println("JSONShortURL end: ")
 	resp.JSON(w, http.StatusCreated, ResBody{shortURL})
 }
