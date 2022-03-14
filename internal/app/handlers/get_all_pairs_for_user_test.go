@@ -41,7 +41,7 @@ func TestGetAllPairs(t *testing.T) {
 			want: want{
 				contentType: resp.MIMEApplicationJSONCharsetUTF8,
 				statusCode:  200,
-				respMessage: "[{\"short_url\":\"http://localhost:8080/test\",\"orig_url\":\"https://jwt.io/\"}]",
+				respMessage: "[{\"short_url\":\"http://localhost:8080/test\",\"original_url\":\"https://jwt.io/\"}]",
 			},
 		},
 	}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
+	"github.com/EestiChameleon/URLShortenerService/internal/app/models"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"log"
 	"os"
@@ -26,7 +27,7 @@ type Session struct {
 }
 
 func NewSeesion() *Session {
-	log.Println("database NewSessions: start")
+	log.Println("database NewSession: start")
 	return &Session{
 		ID:       "",
 		Pairs:    map[string]string{},
@@ -34,15 +35,15 @@ func NewSeesion() *Session {
 	}
 }
 
-// InitStorage method parse data from file and initiate all storage dependencies
+// InitStorage method provides a Memory/File/DB storage, based on config data
 func (s *Session) InitStorage() error {
 	log.Println("database InitStorage: start")
-	if cfg.Envs.FileStoragePath == "" {
-		if err := cfg.GetEnvs(); err != nil {
-			log.Println(err)
-			return err
-		}
-	}
+	//if cfg.Envs.FileStoragePath == "" {
+	//	if err := cfg.GetEnvs(); err != nil {
+	//		log.Println(err)
+	//		return err
+	//	}
+	//}
 
 	// create/open file
 	log.Println("database InitStorage: openfile")
@@ -87,7 +88,7 @@ func (s *Session) CloseStorage() error {
 func (s *Session) Put(origURL string) (shortURL string, err error) {
 	log.Println("database Put: start")
 	log.Println("database Put: origURL", origURL)
-	shortURL, err = ShortURL()
+	shortURL, err = models.ShortURL()
 	if err != nil {
 		log.Println(err)
 		return ``, err
