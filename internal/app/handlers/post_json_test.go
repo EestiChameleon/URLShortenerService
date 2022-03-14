@@ -60,8 +60,12 @@ func TestJSONShortURL(t *testing.T) {
 			w := httptest.NewRecorder()
 			// определяем хендлер
 			h := http.HandlerFunc(JSONShortURL)
+			// envs
+			cfg.Envs.BaseURL = "http://localhost:8080"
+			//cfg.Envs.FileStoragePath = "tmp/testFile"
+			//cfg.Envs.DatabaseDSN = "postgresql://localhost:5432/yandex_practicum_db"
 			// запускаем сервер
-			if err := storage.User.InitTestStorage(); err != nil {
+			if err := storage.InitStorage(); err != nil {
 				log.Fatal(err)
 			}
 			defer os.Remove(cfg.Envs.FileStoragePath)

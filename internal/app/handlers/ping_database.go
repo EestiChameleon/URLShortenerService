@@ -9,7 +9,7 @@ import (
 
 func PingDatabase(w http.ResponseWriter, r *http.Request) {
 	log.Println("PingDatabase: start")
-	if err := storage.User.PingDB(); err != nil {
+	if err := storage.PingDB(); err != nil {
 		log.Println("PingDatabase err: ", err)
 		resp.NoContent(w, http.StatusInternalServerError)
 		return

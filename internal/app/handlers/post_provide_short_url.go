@@ -28,11 +28,16 @@ func PostProvideShortURL(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// get a short url to pair with the orig url
-	log.Println("PostProvideShortURL: storage.User.Put(origURL) - ", origURL)
-	shortURL, err := storage.User.Put(origURL)
+	shortURL, err := storage.User.CreateShortURL()
 	if err != nil {
-		log.Println("PostProvideShortURL: storage.Pairs.Put(longURL) error:", err)
-		resp.WriteString(w, http.StatusBadRequest, "invalid url")
+		log.Println("JSONShortURL: GetShortURL err:", err)
+		resp.WriteString(w, http.StatusBadRequest, "invalid data")
+		return
+	}
+
+	if err = storage.User.SavePair(storage.Pair{ShortURL: shortURL, OrigURL: origURL}); err != nil {
+		log.Println("JSONShortURL: storage.User.SavePair err:", err)
+		resp.WriteString(w, http.StatusBadRequest, "invalid data")
 		return
 	}
 	log.Println("PostProvideShortURL: end")

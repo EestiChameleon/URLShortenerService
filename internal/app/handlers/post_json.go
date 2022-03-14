@@ -22,7 +22,7 @@ type ResBody struct {
 func JSONShortURL(w http.ResponseWriter, r *http.Request) {
 	// read body
 	var reqBody ReqBody
-	log.Println("JSONShortURL start: read r.Body")
+	log.Println("JSONShortURL: start - read r.Body")
 	byteBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Println("JSONShortURL: unable to read body:", err)
@@ -38,21 +38,27 @@ func JSONShortURL(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// check if it's not empty
-	longURL := reqBody.URL
-	if longURL == "" {
+	origURL := reqBody.URL
+	if origURL == "" {
 		log.Println("JSONShortURL: empty r.Body")
 		resp.WriteString(w, http.StatusBadRequest, "invalid data")
 		return
 	}
 
 	// get a short url to pair with the orig url
-	shortURL, err := storage.User.Put(longURL)
+	shortURL, err := storage.User.CreateShortURL()
 	if err != nil {
-		log.Println("JSONShortURL: storage.Pairs.Put(longURL) error:", err)
+		log.Println("JSONShortURL: GetShortURL err:", err)
 		resp.WriteString(w, http.StatusBadRequest, "invalid data")
 		return
 	}
 
-	log.Println("JSONShortURL end: ")
+	if err = storage.User.SavePair(storage.Pair{ShortURL: shortURL, OrigURL: origURL}); err != nil {
+		log.Println("JSONShortURL: storage.User.SavePair err:", err)
+		resp.WriteString(w, http.StatusBadRequest, "invalid data")
+		return
+	}
+
+	log.Println("JSONShortURL: OK")
 	resp.JSON(w, http.StatusCreated, ResBody{shortURL})
 }

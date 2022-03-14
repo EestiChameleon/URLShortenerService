@@ -61,8 +61,11 @@ func TestPostProvideShortURL(t *testing.T) {
 			// определяем хендлер
 			h := http.HandlerFunc(PostProvideShortURL)
 			// запускаем сервер
-			storage.User = storage.TestUser()
-			if err := storage.User.InitTestStorage(); err != nil {
+			// envs
+			cfg.Envs.BaseURL = "http://localhost:8080"
+			//cfg.Envs.FileStoragePath = "tmp/testFile"
+			//cfg.Envs.DatabaseDSN = "postgresql://localhost:5432/yandex_practicum_db"
+			if err := storage.InitStorage(); err != nil {
 				log.Fatal(err)
 			}
 			defer os.Remove(cfg.Envs.FileStoragePath)

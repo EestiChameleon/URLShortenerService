@@ -8,8 +8,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 )
 
@@ -37,7 +39,7 @@ func TestGetAllPairs(t *testing.T) {
 		{
 			name:    "GET test #2: test user id -> 200",
 			request: "http://localhost:8080/api/user/urls",
-			userID:  "test",
+			userID:  "testUser",
 			want: want{
 				contentType: resp.MIMEApplicationJSONCharsetUTF8,
 				statusCode:  200,
@@ -48,13 +50,28 @@ func TestGetAllPairs(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodGet, tt.request, nil)
-			storage.User = storage.TestUser()
-			cfg.GetEnvs()
+			// envs
+			cfg.Envs.BaseURL = "http://localhost:8080"
+			//cfg.Envs.FileStoragePath = "tmp/testFile"
+			//cfg.Envs.DatabaseDSN = "postgresql://localhost:5432/yandex_practicum_db"
+			if err := storage.InitStorage(); err != nil {
+				log.Fatal(err)
+			}
+			if tt.userID != "" {
+				storage.User.SetUserID("testUser")
+				if err := storage.User.SavePair(storage.Pair{
+					ShortURL: "http://localhost:8080/test",
+					OrigURL:  "https://jwt.io/",
+				}); err != nil {
+					log.Fatal(err)
+				}
+			}
+			defer os.Remove(cfg.Envs.FileStoragePath)
 			// создаём новый Recorder
 			w := httptest.NewRecorder()
 			r := chi.NewRouter()
 			// определяем хендлер
-			storage.User.ID = tt.userID
+			storage.User.SetUserID(tt.userID)
 			r.Get("/api/user/urls", GetAllPairs)
 			// запускаем сервер
 			r.ServeHTTP(w, request)

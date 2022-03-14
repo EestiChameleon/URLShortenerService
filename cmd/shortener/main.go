@@ -31,10 +31,10 @@ func main() {
 
 	// database initiation
 	log.Println("main: start InitStorage")
-	if err := storage.User.InitStorage(); err != nil {
+	if err := storage.InitStorage(); err != nil {
 		log.Fatal(err)
 	}
-	defer storage.User.CloseStorage() // save data before exit
+	defer storage.User.ShutDown() // DB - close connection, Memory - save data and exit
 
 	// start the server
 	log.Println("main: start Server")
