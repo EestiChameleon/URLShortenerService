@@ -8,9 +8,10 @@ import (
 )
 
 func GetAllPairs(w http.ResponseWriter, r *http.Request) {
+	var emptyPair storage.Pair
 	log.Println("GetAllPairs start: search pairs")
 	pairs, err := storage.User.GetUserURLs()
-	if err != nil {
+	if err != nil || pairs[0] == emptyPair {
 		log.Println("GetAllPairs: user pairs not found -> 204")
 		resp.NoContent(w, http.StatusNoContent)
 		return
