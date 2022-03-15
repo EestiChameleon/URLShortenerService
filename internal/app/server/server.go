@@ -33,6 +33,7 @@ func Start() error {
 
 	router.With(cmw.RequestGZIP, cmw.ResponseGZIP).Post("/", handlers.PostProvideShortURL)
 	router.With(cmw.RequestGZIP, cmw.ResponseGZIP).Post("/api/shorten", handlers.JSONShortURL)
+	router.With(cmw.RequestGZIP, cmw.ResponseGZIP).Post("/api/shorten/batch", handlers.PostBatch)
 
 	// Start server
 	s := http.Server{
