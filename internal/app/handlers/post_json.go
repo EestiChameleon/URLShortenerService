@@ -45,10 +45,25 @@ func JSONShortURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// get a short url to pair with the orig url
-	shortURL, err := storage.User.CreateShortURL()
-	if err != nil {
+	var shortURL string
+	// check for already existing short URL
+	shortURL, err = storage.User.GetShortURL(origURL)
+	if err != nil && err != storage.ErrMemoryNotFound {
 		log.Println("JSONShortURL: GetShortURL err:", err)
+		resp.WriteString(w, http.StatusBadRequest, "invalid data")
+		return
+	}
+	// return the already existing shortURL
+	if shortURL != "" {
+		log.Println("JSONShortURL: ShortURL already exists - ", shortURL)
+		resp.JSON(w, http.StatusConflict, ResBody{shortURL})
+		return
+	}
+
+	// get a NEW short url to pair with the orig url
+	shortURL, err = storage.User.CreateShortURL()
+	if err != nil {
+		log.Println("JSONShortURL: CreateShortURL err:", err)
 		resp.WriteString(w, http.StatusBadRequest, "invalid data")
 		return
 	}

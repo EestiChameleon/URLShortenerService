@@ -27,16 +27,31 @@ func PostProvideShortURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// get a short url to pair with the orig url
-	shortURL, err := storage.User.CreateShortURL()
+	var shortURL string
+	// check for already existing short URL
+	shortURL, err = storage.User.GetShortURL(origURL)
+	if err != nil && err != storage.ErrMemoryNotFound {
+		log.Println("PostProvideShortURL: GetShortURL err:", err)
+		resp.WriteString(w, http.StatusBadRequest, "invalid data")
+		return
+	}
+	// return the already existing shortURL
+	if shortURL != "" {
+		log.Println("PostProvideShortURL: ShortURL already exists - ", shortURL)
+		resp.WriteString(w, http.StatusConflict, shortURL)
+		return
+	}
+
+	// get a NEW short url to pair with the orig url
+	shortURL, err = storage.User.CreateShortURL()
 	if err != nil {
-		log.Println("JSONShortURL: GetShortURL err:", err)
+		log.Println("PostProvideShortURL: CreateShortURL err:", err)
 		resp.WriteString(w, http.StatusBadRequest, "invalid data")
 		return
 	}
 
 	if err = storage.User.SavePair(storage.Pair{ShortURL: shortURL, OrigURL: origURL}); err != nil {
-		log.Println("JSONShortURL: storage.User.SavePair err:", err)
+		log.Println("PostProvideShortURL: storage.User.SavePair err:", err)
 		resp.WriteString(w, http.StatusBadRequest, "invalid data")
 		return
 	}

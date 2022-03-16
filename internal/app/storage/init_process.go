@@ -10,10 +10,11 @@ var (
 )
 
 type Data interface {
-	GetURL(shortURL string) (string, error) // find OrigURL by ShortURL
-	SavePair(pair Pair) error               // save origURL and provide shortURL
-	GetUserURLs() ([]Pair, error)           // provide a list of all shorten links by userID
-	ShutDown() error                        // close the storage
+	GetOrigURL(shortURL string) (string, error) // find OrigURL by ShortURL
+	GetShortURL(origURL string) (string, error) // find OrigURL by ShortURL
+	SavePair(pair Pair) error                   // save origURL and provide shortURL
+	GetUserURLs() ([]Pair, error)               // provide a list of all shorten links by userID
+	ShutDown() error                            // close the storage
 	SetUserID(userID string)
 	CreateShortURL() (string, error)
 }

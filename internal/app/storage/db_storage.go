@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/models"
 	"github.com/georgysavva/scany/pgxscan"
@@ -9,7 +10,10 @@ import (
 	"log"
 )
 
-var pool *pgxpool.Pool
+var (
+	pool          *pgxpool.Pool
+	ErrDBNotFound = errors.New(`no rows in result set`)
+)
 
 type DBStorage struct {
 	ID string
@@ -24,10 +28,12 @@ func InitDBStorage() (*DBStorage, error) {
 		return nil, err
 	}
 
-	// create table if it doesn't exist
+	// create table if it doesn't exist. Unique column - original_url
 	log.Println("db_storage InitDBStorage: check for table existence - create if it's missing")
 	_, err = conn.Exec(context.Background(),
-		"CREATE TABLE IF NOT EXISTS shorten_pairs (short_url varchar(255) not null, orig_url varchar(255) not null, user_id   varchar(42)); create index IF NOT EXISTS shorten_pairs_short_url_index on shorten_pairs (short_url);")
+		"CREATE TABLE IF NOT EXISTS shorten_pairs (short_url varchar(255) not null, orig_url varchar(255) not null, user_id   varchar(42)); "+
+			"create index IF NOT EXISTS shorten_pairs_short_url_index on shorten_pairs (short_url); "+
+			"create unique index IF NOT EXISTS shorten_pairs_orig_url_uindex on public.shorten_pairs (orig_url);")
 	if err != nil {
 		log.Println("db_storage InitDBStorage: err - ", err)
 		return nil, err
@@ -40,14 +46,46 @@ func InitDBStorage() (*DBStorage, error) {
 
 //-------------------- DATABASE QUERIES --------------------
 
-func (db *DBStorage) GetURL(shortURL string) (origURL string, err error) {
+func (db *DBStorage) GetOrigURL(shortURL string) (origURL string, err error) {
 	if err = db.DB.QueryRow(context.Background(),
 		"SELECT orig_url FROM shorten_pairs WHERE short_url=$1;", shortURL).Scan(&origURL); err != nil {
-		return ``, err
+		if err.Error() == `no rows in result set` {
+			return ``, nil
+		} else {
+			return ``, err
+		}
 	}
 
 	return origURL, nil
 }
+
+func (db *DBStorage) GetShortURL(origURL string) (shortURL string, err error) {
+	if err = db.DB.QueryRow(context.Background(),
+		"SELECT short_url FROM shorten_pairs WHERE orig_url=$1;", origURL).Scan(&shortURL); err != nil {
+		if err.Error() == `no rows in result set` {
+			return ``, nil
+		} else {
+			return ``, err
+		}
+	}
+
+	return shortURL, nil
+}
+
+/*
+we can use this query
+but no errors are returned
+
+WITH e AS(
+    INSERT INTO shorten_pairs (short_url, orig_url, user_id)
+        VALUES ('httpOut1', 'httpIn', '1')
+        ON CONFLICT(orig_url) DO NOTHING
+        RETURNING short_url
+)
+SELECT * FROM e
+UNION
+SELECT short_url FROM shorten_pairs WHERE orig_url='httpIn';
+*/
 
 func (db *DBStorage) SavePair(pair Pair) (err error) {
 	_, err = db.DB.Exec(context.Background(),
@@ -101,7 +139,7 @@ func (db *DBStorage) CreateShortURL() (shortURL string, err error) {
 	}
 
 	log.Println("db_storage GetShortURL: check for already existing shortURL")
-	origURL, err := db.GetURL(shortURL)
+	origURL, err := db.GetOrigURL(shortURL)
 	if err != nil {
 		log.Println(err)
 	}

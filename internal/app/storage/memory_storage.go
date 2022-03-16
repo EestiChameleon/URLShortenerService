@@ -9,6 +9,10 @@ import (
 	"os"
 )
 
+var (
+	ErrMemoryNotFound = errors.New("not found")
+)
+
 type MemoryStorage struct {
 	ID       string
 	Pairs    map[string]string
@@ -53,18 +57,28 @@ func InitMemoryStorage() (*MemoryStorage, error) {
 	return data, nil
 }
 
-func (m *MemoryStorage) GetURL(shortURL string) (string, error) {
-	log.Println("memory_storage GetURL: start")
+func (m *MemoryStorage) GetOrigURL(shortURL string) (string, error) {
+	log.Println("memory_storage - GetOrigURL: start")
 	origURL, ok := m.Pairs[shortURL]
 	if !ok || origURL == "" {
-		return ``, errors.New("not found")
+		return ``, ErrMemoryNotFound
 	} else {
 		return origURL, nil
 	}
 }
 
+func (m *MemoryStorage) GetShortURL(origURL string) (string, error) {
+	log.Println("memory_storage - GetShortURL: start")
+	for s, o := range m.Pairs {
+		if o == origURL {
+			return s, nil
+		}
+	}
+	return ``, ErrMemoryNotFound
+}
+
 func (m *MemoryStorage) SavePair(pair Pair) (err error) {
-	log.Println("memory_storage SavePair: start")
+	log.Println("memory_storage - SavePair: start")
 	// save data
 	log.Printf("memory_storage SavePair: save to Pairs. ShortURL: %s, OrigURL: %s\n", pair.ShortURL, pair.OrigURL)
 	m.Pairs[pair.ShortURL] = pair.OrigURL

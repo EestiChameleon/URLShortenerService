@@ -19,7 +19,7 @@ func GetOrigURL(w http.ResponseWriter, r *http.Request) {
 	// check for the short url in map
 	shortURL := fmt.Sprintf("%s/%s", cfg.Envs.BaseURL, id)
 	log.Println("GetOrigURL: search for shortURL pair - ", shortURL)
-	origURL, err := storage.User.GetURL(shortURL)
+	origURL, err := storage.User.GetOrigURL(shortURL)
 	if err != nil || origURL == "" {
 		log.Println("GetOrigURL: orig URL not found -> 400")
 		resp.WriteString(w, http.StatusBadRequest, "invalid id")
