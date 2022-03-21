@@ -23,6 +23,12 @@ func GetAllPairs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(pairs) == 0 {
+		log.Println("[INFO] handlers -> GetAllPairs: user pairs not found")
+		resp.NoContent(w, http.StatusNoContent)
+		return
+	}
+
 	log.Println("[INFO] handlers -> GetAllPairs end: user pairs found -> ", pairs)
 	resp.JSON(w, http.StatusOK, pairs)
 }
