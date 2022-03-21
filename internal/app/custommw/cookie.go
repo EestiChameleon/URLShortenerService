@@ -1,8 +1,8 @@
 package custommw
 
 import (
-	"github.com/EestiChameleon/URLShortenerService/internal/app/models"
 	resp "github.com/EestiChameleon/URLShortenerService/internal/app/responses"
+	"github.com/EestiChameleon/URLShortenerService/internal/app/service/data"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 	"log"
 	"net/http"
@@ -14,14 +14,14 @@ func CheckCookie(next http.Handler) http.Handler {
 		cookie, err := r.Cookie("UserID")
 		if err != nil {
 			log.Println("CheckCookie r.Cookie(\"UserID\") err: ", err)
-			userID, err := models.CreateUserID()
+			userID, err := data.CreateUserID()
 			if err != nil {
 				resp.NoContent(w, http.StatusInternalServerError)
 				return
 			}
 			log.Println("CheckCookie storage.User.ID created & saved: ", userID)
 			storage.User.SetUserID(userID)
-			token, err := models.JWTEncode("userID", userID)
+			token, err := data.JWTEncode("userID", userID)
 			if err != nil {
 				resp.NoContent(w, http.StatusInternalServerError)
 				return
@@ -32,7 +32,7 @@ func CheckCookie(next http.Handler) http.Handler {
 			return
 		}
 		log.Println("CheckCookie: cookie found - ", cookie)
-		userID, err := models.JWTDecode(cookie.Value, "userID")
+		userID, err := data.JWTDecode(cookie.Value, "userID")
 		if err != nil {
 			log.Println("cookie JWTDecode err: ", err)
 			resp.NoContent(w, http.StatusInternalServerError)

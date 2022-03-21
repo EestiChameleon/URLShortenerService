@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/server"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
@@ -12,32 +11,24 @@ func init() {
 
 }
 
-func main() {
-	// flags declaration
-	log.Println("main: flag declaration start")
-	flag.StringVar(&cfg.Envs.SrvAddr, "a", "localhost:8080", "SERVER_ADDRESS to listen on")
-	flag.StringVar(&cfg.Envs.BaseURL, "b", "http://localhost:8080", "BASE_URL of the shorten result URL")
-	flag.StringVar(&cfg.Envs.FileStoragePath, "f", "tmp/urlPairsData", "FILE_STORAGE_PATH. Directory of the origin&shorten url pairs file")
-	flag.StringVar(&cfg.Envs.DatabaseDSN, "d", "postgresql://localhost:5432/yandex_practicum_db", "DATABASE_DSN. Address for connection to DB")
+func main() { //nolint:typecheck
+	log.Println("[INFO] main -> cfg.GetFlag()")
+	cfg.GetFlag()
 
-	// get envs
-	log.Println("main: GetEnvs start")
+	log.Println("[INFO] main -> cfg.GetEnvs()")
 	if err := cfg.GetEnvs(); err != nil {
 		log.Fatal(err)
 	}
 
-	log.Println("main: flag parse start")
-	flag.Parse()
-
 	// database initiation
-	log.Println("main: start InitStorage")
+	log.Println("[INFO] main -> storage.InitStorage()")
 	if err := storage.InitStorage(); err != nil {
 		log.Fatal(err)
 	}
 	defer storage.User.ShutDown() // DB - close connection, Memory - save data and exit
 
 	// start the server
-	log.Println("main: start Server")
+	log.Println("[INFO] main -> server.Start()")
 	if err := server.Start(); err != nil {
 		log.Fatal(err)
 	}

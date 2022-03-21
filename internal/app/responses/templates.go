@@ -42,7 +42,7 @@ func JSON(w http.ResponseWriter, code int, i interface{}) {
 
 	w.Header().Set(HeaderContentType, MIMEApplicationJSONCharsetUTF8)
 	w.WriteHeader(code)
-	w.Write(data)
+	w.Write(data) //nolint:errcheck
 }
 
 func NoContent(w http.ResponseWriter, code int) {
@@ -54,7 +54,7 @@ func WriteString(w http.ResponseWriter, code int, s string) {
 	log.Printf("templates WriteString start. Code: %v, String: %s\n", code, s)
 	w.Header().Set(HeaderContentType, MIMETextPlainCharsetUTF8)
 	w.WriteHeader(code)
-	w.Write([]byte(s)) // Проверять ошибку здесь смысла нет: если ты не можешь записать байтики в подключение, то ответ со статусом вернуть тоже не сможешь, тк соединение уже вероятно разорвано) (c)
+	w.Write([]byte(s)) //nolint:errcheck    // Проверять ошибку здесь смысла нет: если ты не можешь записать байтики в подключение, то ответ со статусом вернуть тоже не сможешь, тк соединение уже вероятно разорвано) (c)
 }
 
 // RedirectString send a redirect header to the indicated link - s
@@ -65,7 +65,7 @@ func RedirectString(w http.ResponseWriter, s string) {
 	w.WriteHeader(http.StatusTemporaryRedirect)
 }
 
-//CreateCookie func provides a cookie "key=value" based on given params
+// CreateCookie func provides a cookie "key=value" based on given params
 func CreateCookie(key string, value string) *http.Cookie {
 	log.Printf("templates CreateCookie start. Key: %s, Value: %s\n", key, value)
 	return &http.Cookie{

@@ -19,12 +19,13 @@ func Start() error {
 	router.Use(middleware.RealIP)
 	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
+	// custom middleware
 	router.Use(cmw.CheckCookie)
 
 	// Set a timeout value on the request context (ctx), that will signal
 	// through ctx.Done() that the request has timed out and further
 	// processing should be stopped.
-	//router.Use(middleware.Timeout(60 * time.Second))
+	// router.Use(middleware.Timeout(60 * time.Second))
 
 	// Routes
 	router.With(cmw.ResponseGZIP).Get("/{id}", handlers.GetOrigURL)
@@ -39,7 +40,7 @@ func Start() error {
 	s := http.Server{
 		Addr:    cfg.Envs.SrvAddr,
 		Handler: router,
-		//ReadTimeout: 30 * time.Second, // customize http.Server timeouts
+		// ReadTimeout: 30 * time.Second, // customize http.Server timeouts
 	}
 
 	return s.ListenAndServe()

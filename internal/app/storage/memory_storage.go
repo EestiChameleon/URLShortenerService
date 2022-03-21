@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
-	"github.com/EestiChameleon/URLShortenerService/internal/app/models"
+	"github.com/EestiChameleon/URLShortenerService/internal/app/service/data"
 	"log"
 	"os"
 )
@@ -20,7 +20,7 @@ type MemoryStorage struct {
 }
 
 func InitMemoryStorage() (*MemoryStorage, error) {
-	data := &MemoryStorage{
+	d := &MemoryStorage{
 		ID:       "",
 		Pairs:    map[string]string{},
 		UserData: map[string][]Pair{},
@@ -46,7 +46,7 @@ func InitMemoryStorage() (*MemoryStorage, error) {
 
 		log.Println("memory_storage InitMemoryStorage: check len(bytes)")
 		if len(bytes) != 0 {
-			if err = json.Unmarshal(bytes, &data.Pairs); err != nil {
+			if err = json.Unmarshal(bytes, &d.Pairs); err != nil {
 				log.Println(err)
 				return nil, err
 			}
@@ -54,7 +54,7 @@ func InitMemoryStorage() (*MemoryStorage, error) {
 	}
 
 	log.Println("memory_storage InitMemoryStorage: OK")
-	return data, nil
+	return d, nil
 }
 
 func (m *MemoryStorage) GetOrigURL(shortURL string) (string, error) {
@@ -62,9 +62,8 @@ func (m *MemoryStorage) GetOrigURL(shortURL string) (string, error) {
 	origURL, ok := m.Pairs[shortURL]
 	if !ok || origURL == "" {
 		return ``, ErrMemoryNotFound
-	} else {
-		return origURL, nil
 	}
+	return origURL, nil
 }
 
 func (m *MemoryStorage) GetShortURL(origURL string) (string, error) {
@@ -99,14 +98,13 @@ func (m *MemoryStorage) SavePair(pair Pair) (err error) {
 	return nil
 }
 
-func (m *MemoryStorage) GetUserURLs() (pairs []Pair, err error) {
+func (m *MemoryStorage) GetUserURLs() ([]Pair, error) {
 	log.Println("memory_storage GetUserURLs: start")
 	pairs, ok := m.UserData[m.ID]
 	if !ok {
-		return nil, errors.New("not found")
-	} else {
-		return pairs, nil
+		return nil, ErrMemoryNotFound
 	}
+	return pairs, nil
 }
 
 func (m *MemoryStorage) ShutDown() error {
@@ -129,7 +127,7 @@ func (m *MemoryStorage) SetUserID(userID string) {
 
 func (m *MemoryStorage) CreateShortURL() (shortURL string, err error) {
 	log.Println("memory_storage GetShortURL: start")
-	shortURL, err = models.ShortURL()
+	shortURL, err = data.ShortURL()
 	if err != nil {
 		log.Println(err)
 		return ``, err

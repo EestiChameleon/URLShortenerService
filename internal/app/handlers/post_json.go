@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	resp "github.com/EestiChameleon/URLShortenerService/internal/app/responses"
+	"github.com/EestiChameleon/URLShortenerService/internal/app/service/process"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 	"io"
 	"log"
@@ -22,17 +24,17 @@ type ResBody struct {
 func JSONShortURL(w http.ResponseWriter, r *http.Request) {
 	// read body
 	var reqBody ReqBody
-	log.Println("JSONShortURL: start - read r.Body")
+	log.Println("[INFO] handlers -> JSONShortURL: start - read r.Body")
 	byteBody, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.Println("JSONShortURL: unable to read body:", err)
+		log.Println("[ERROR] handlers -> JSONShortURL: unable to read body:", err)
 		resp.WriteString(w, http.StatusBadRequest, "invalid data")
 		return
 	}
 
-	log.Println("JSONShortURL: json.Unmarshal(byteBody, &reqBody)")
+	log.Println("[INFO] handlers -> JSONShortURL: json.Unmarshal(byteBody, &reqBody)")
 	if err = json.Unmarshal(byteBody, &reqBody); err != nil {
-		log.Println("JSONShortURL: unable to unmarshal body:", err)
+		log.Println("[ERROR] handlers -> JSONShortURL: unable to unmarshal body:", err)
 		resp.WriteString(w, http.StatusBadRequest, "invalid data")
 		return
 	}
@@ -40,40 +42,23 @@ func JSONShortURL(w http.ResponseWriter, r *http.Request) {
 	// check if it's not empty
 	origURL := reqBody.URL
 	if origURL == "" {
-		log.Println("JSONShortURL: empty r.Body")
+		log.Println("[INFO] handlers -> JSONShortURL: empty r.Body")
 		resp.WriteString(w, http.StatusBadRequest, "invalid data")
 		return
 	}
 
-	var shortURL string
-	// check for already existing short URL
-	shortURL, err = storage.User.GetShortURL(origURL)
-	if err != nil && err != storage.ErrMemoryNotFound {
-		log.Println("JSONShortURL: GetShortURL err:", err)
-		resp.WriteString(w, http.StatusBadRequest, "invalid data")
-		return
-	}
-	// return the already existing shortURL
-	if shortURL != "" {
-		log.Println("JSONShortURL: ShortURL already exists - ", shortURL)
-		resp.JSON(w, http.StatusConflict, ResBody{shortURL})
-		return
-	}
-
-	// get a NEW short url to pair with the orig url
-	shortURL, err = storage.User.CreateShortURL()
+	shortURL, err := process.ShortURLforOrigURL(origURL)
 	if err != nil {
-		log.Println("JSONShortURL: CreateShortURL err:", err)
+		if errors.Is(err, storage.ErrDBOrigURLExists) {
+			log.Println("[INFO] handlers -> JSONShortURL: shortURL & origURL pair exists")
+			resp.JSON(w, http.StatusConflict, ResBody{shortURL})
+			return
+		}
+		log.Println("[ERROR] handlers -> JSONShortURL: ShortURLforOrigURL err:", err)
 		resp.WriteString(w, http.StatusBadRequest, "invalid data")
 		return
 	}
 
-	if err = storage.User.SavePair(storage.Pair{ShortURL: shortURL, OrigURL: origURL}); err != nil {
-		log.Println("JSONShortURL: storage.User.SavePair err:", err)
-		resp.WriteString(w, http.StatusBadRequest, "invalid data")
-		return
-	}
-
-	log.Println("JSONShortURL: OK")
+	log.Println("[INFO] handlers -> JSONShortURL: OK")
 	resp.JSON(w, http.StatusCreated, ResBody{shortURL})
 }

@@ -1,4 +1,4 @@
-package models
+package data
 
 import (
 	"crypto/rand"
@@ -9,7 +9,7 @@ import (
 	"log"
 )
 
-func ShortURL() (shortURL string, err error) {
+func ShortURL() (shortUrl string, err error) {
 	log.Println("data actions: ShortURL start")
 	// 7 bytes is enough to provide more than 78kkk diff combinations
 	b := make([]byte, 7)
@@ -17,8 +17,8 @@ func ShortURL() (shortURL string, err error) {
 	if err != nil {
 		return "", err
 	}
-	shortURL = fmt.Sprintf("%s/%x", cfg.Envs.BaseURL, b[0:])
-	log.Printf("data actions: ShortURL end. shortURL: %v\n", shortURL)
+	shortUrl = fmt.Sprintf("%s/%x", cfg.Envs.BaseURL, b[0:])
+	log.Printf("data actions: ShortURL end. shortURL: %v\n", shortUrl)
 	return
 }
 
@@ -60,10 +60,9 @@ func JWTEncode(key, value string) (string, error) {
 	if err = algorithm.Validate(token); err != nil {
 		log.Println("JWTEncode validate err: ", err)
 		return ``, err
-	} else {
-		log.Printf("data actions: JWTEncode end. Token: %v\n", token)
-		return token, nil
 	}
+	log.Printf("data actions: JWTEncode end. Token: %v\n", token)
+	return token, nil
 }
 
 func JWTDecode(token, key string) (string, error) {

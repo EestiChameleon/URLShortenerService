@@ -28,7 +28,7 @@ type Pair struct {
 func InitStorage() (err error) {
 	log.Println("init_storage InitStorage: start")
 	// not the default db for checks
-	if cfg.Envs.DatabaseDSN != "" { //} && cfg.Envs.DatabaseDSN != "postgresql://localhost:5432/yandex_practicum_db" {
+	if cfg.Envs.DatabaseDSN != "" {
 		log.Println("init_storage InitStorage: DB case")
 		User, err = InitDBStorage()
 		if err != nil {

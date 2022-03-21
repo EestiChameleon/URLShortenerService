@@ -41,8 +41,12 @@ type BatchResp []BatchRespPair
 //	]
 
 func PostBatch(w http.ResponseWriter, r *http.Request) {
+	var (
+		reqBody  BatchReq
+		respBody BatchResp
+	)
+
 	// read body
-	var reqBody BatchReq
 	log.Println("PostBatch: start - read r.Body")
 	byteBody, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -57,8 +61,6 @@ func PostBatch(w http.ResponseWriter, r *http.Request) {
 		resp.WriteString(w, http.StatusBadRequest, "invalid data")
 		return
 	}
-
-	var respBody BatchResp
 
 	for _, v := range reqBody {
 		// check if it's not empty

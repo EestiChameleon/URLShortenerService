@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	resp "github.com/EestiChameleon/URLShortenerService/internal/app/responses"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 	"log"
@@ -8,15 +9,20 @@ import (
 )
 
 func GetAllPairs(w http.ResponseWriter, r *http.Request) {
-	log.Println("GetAllPairs start: search pairs")
+	log.Println("[INFO] handlers -> GetAllPairs start: search pairs")
 	pairs, err := storage.User.GetUserURLs()
-	log.Println(pairs)
-	if err != nil || len(pairs) == 0 {
-		log.Println("GetAllPairs: user pairs not found - ", err)
-		resp.NoContent(w, http.StatusNoContent)
+
+	if err != nil {
+		if errors.Is(err, storage.ErrMemoryNotFound) {
+			log.Println("[INFO] handlers -> GetAllPairs: user pairs not found")
+			resp.NoContent(w, http.StatusNoContent)
+			return
+		}
+		log.Println("[ERROR] handlers -> GetAllPairs err: ", err)
+		resp.NoContent(w, http.StatusBadRequest)
 		return
 	}
 
-	log.Println("GetAllPairs end: user pairs found -> JSON 200")
+	log.Println("[INFO] handlers -> GetAllPairs end: user pairs found -> ", pairs)
 	resp.JSON(w, http.StatusOK, pairs)
 }

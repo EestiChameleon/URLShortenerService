@@ -4,15 +4,16 @@ import (
 	"context"
 	"errors"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
-	"github.com/EestiChameleon/URLShortenerService/internal/app/models"
+	"github.com/EestiChameleon/URLShortenerService/internal/app/service/data"
 	"github.com/georgysavva/scany/pgxscan"
+	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"log"
 )
 
 var (
-	pool          *pgxpool.Pool
-	ErrDBNotFound = errors.New(`no rows in result set`)
+	pool               *pgxpool.Pool
+	ErrDBOrigURLExists = errors.New("pair with given orig_url already exists")
 )
 
 type DBStorage struct {
@@ -49,11 +50,10 @@ func InitDBStorage() (*DBStorage, error) {
 func (db *DBStorage) GetOrigURL(shortURL string) (origURL string, err error) {
 	if err = db.DB.QueryRow(context.Background(),
 		"SELECT orig_url FROM shorten_pairs WHERE short_url=$1;", shortURL).Scan(&origURL); err != nil {
-		if err.Error() == `no rows in result set` {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return ``, nil
-		} else {
-			return ``, err
 		}
+		return ``, err
 	}
 
 	return origURL, nil
@@ -62,42 +62,38 @@ func (db *DBStorage) GetOrigURL(shortURL string) (origURL string, err error) {
 func (db *DBStorage) GetShortURL(origURL string) (shortURL string, err error) {
 	if err = db.DB.QueryRow(context.Background(),
 		"SELECT short_url FROM shorten_pairs WHERE orig_url=$1;", origURL).Scan(&shortURL); err != nil {
-		if err.Error() == `no rows in result set` {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return ``, nil
-		} else {
-			return ``, err
 		}
+		return ``, err
 	}
 
 	return shortURL, nil
 }
 
-/*
-we can use this query
-but no errors are returned
-
-WITH e AS(
-    INSERT INTO shorten_pairs (short_url, orig_url, user_id)
-        VALUES ('httpOut1', 'httpIn', '1')
-        ON CONFLICT(orig_url) DO NOTHING
-        RETURNING short_url
-)
-SELECT * FROM e
-UNION
-SELECT short_url FROM shorten_pairs WHERE orig_url='httpIn';
-*/
-
-func (db *DBStorage) SavePair(pair Pair) (err error) {
-	_, err = db.DB.Exec(context.Background(),
-		"INSERT INTO shorten_pairs(short_url, orig_url, user_id) VALUES($1, $2, $3);",
+func (db *DBStorage) SavePair(pair Pair) error {
+	tag, err := db.DB.Exec(context.Background(),
+		" INSERT INTO shorten_pairs (short_url, orig_url, user_id) "+
+			"VALUES ($1, $2, $3) "+
+			"ON CONFLICT(orig_url) DO NOTHING;",
 		pair.ShortURL, pair.OrigURL, db.ID)
 
-	return err
+	if err != nil {
+		return err
+	}
+	// when no rows were affected, then we have a conflict -> orig_url already exists -> find short_url
+	if tag.RowsAffected() == 0 {
+		return ErrDBOrigURLExists
+	}
+	return nil
 }
 
 func (db *DBStorage) GetUserURLs() (pairs []Pair, err error) {
 	if err = pgxscan.Select(context.Background(), db.DB, &pairs,
 		"SELECT short_url, orig_url FROM shorten_pairs WHERE user_id=$1;", db.ID); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
 		return nil, err
 	}
 
@@ -132,7 +128,7 @@ func (db *DBStorage) SetUserID(userID string) {
 
 func (db *DBStorage) CreateShortURL() (shortURL string, err error) {
 	log.Println("db_storage GetShortURL: start")
-	shortURL, err = models.ShortURL()
+	shortURL, err = data.ShortURL()
 	if err != nil {
 		log.Println(err)
 		return ``, err
