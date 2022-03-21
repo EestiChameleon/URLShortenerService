@@ -12,8 +12,8 @@ func init() {
 }
 
 func main() { //nolint:typecheck
-	log.Println("[INFO] main -> cfg.GetFlag()")
-	cfg.GetFlag()
+	//log.Println("[INFO] main -> cfg.GetFlag()")
+	//cfg.GetFlag()
 
 	log.Println("[INFO] main -> cfg.GetEnvs()")
 	if err := cfg.GetEnvs(); err != nil {

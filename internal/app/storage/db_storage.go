@@ -32,7 +32,8 @@ func InitDBStorage() (*DBStorage, error) {
 	// create table if it doesn't exist. Unique column - original_url
 	log.Println("db_storage InitDBStorage: check for table existence - create if it's missing")
 	_, err = conn.Exec(context.Background(),
-		"CREATE TABLE IF NOT EXISTS shorten_pairs (short_url varchar(255) not null, orig_url varchar(255) not null, user_id   varchar(42)); "+
+		"DROP TABLE IF EXISTS shorten_pairs; "+
+			"CREATE TABLE IF NOT EXISTS shorten_pairs (short_url varchar(255) not null, orig_url varchar(255) not null, user_id   varchar(42)); "+
 			"create index IF NOT EXISTS shorten_pairs_short_url_index on shorten_pairs (short_url); "+
 			"create unique index IF NOT EXISTS shorten_pairs_orig_url_uindex on public.shorten_pairs (orig_url);")
 	if err != nil {
