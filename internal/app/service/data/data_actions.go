@@ -9,7 +9,7 @@ import (
 	"log"
 )
 
-func ShortURL() (shortUrl string, err error) {
+func ShortURL() (shortURL string, err error) {
 	log.Println("data actions: ShortURL start")
 	// 7 bytes is enough to provide more than 78kkk diff combinations
 	b := make([]byte, 7)
@@ -17,8 +17,8 @@ func ShortURL() (shortUrl string, err error) {
 	if err != nil {
 		return "", err
 	}
-	shortUrl = fmt.Sprintf("%s/%x", cfg.Envs.BaseURL, b[0:])
-	log.Printf("data actions: ShortURL end. shortURL: %v\n", shortUrl)
+	shortURL = fmt.Sprintf("%s/%x", cfg.Envs.BaseURL, b[0:])
+	log.Printf("data actions: ShortURL end. shortURL: %v\n", shortURL)
 	return
 }
 

@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	resp "github.com/EestiChameleon/URLShortenerService/internal/app/responses"
+	"github.com/EestiChameleon/URLShortenerService/internal/app/service/process"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 	"io"
 	"log"
@@ -44,18 +46,19 @@ func PostBatch(w http.ResponseWriter, r *http.Request) {
 	var (
 		reqBody  BatchReq
 		respBody BatchResp
+		shortURL string
 	)
 
 	// read body
-	log.Println("PostBatch: start - read r.Body")
+	log.Println("[INFO] handlers -> PostBatch: start - read r.Body")
 	byteBody, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.Println("PostBatch: unable to read body:", err)
+		log.Println("[ERROR] handlers -> PostBatch: unable to read body:", err)
 		resp.WriteString(w, http.StatusBadRequest, "invalid data")
 		return
 	}
 
-	log.Println("PostBatch: json.Unmarshal(byteBody, &reqBody)")
+	log.Println("[DEBUG] handlers -> PostBatch: json.Unmarshal(byteBody, &reqBody)")
 	if err = json.Unmarshal(byteBody, &reqBody); err != nil {
 		log.Println("PostBatch: unable to unmarshal body:", err)
 		resp.WriteString(w, http.StatusBadRequest, "invalid data")
@@ -66,21 +69,15 @@ func PostBatch(w http.ResponseWriter, r *http.Request) {
 		// check if it's not empty
 		origURL := v.OrigURL
 		if origURL == "" {
-			log.Println("PostBatch: empty r.Body")
+			log.Println("[ERROR] handlers -> PostBatch: empty r.Body")
 			resp.WriteString(w, http.StatusBadRequest, "invalid data")
 			return
 		}
 
 		// get a short url to pair with the orig url
-		shortURL, err := storage.User.CreateShortURL()
-		if err != nil {
-			log.Println("PostBatch: GetShortURL err:", err)
-			resp.WriteString(w, http.StatusBadRequest, "invalid data")
-			return
-		}
-
-		if err = storage.User.SavePair(storage.Pair{ShortURL: shortURL, OrigURL: origURL}); err != nil {
-			log.Println("PostBatch: storage.User.SavePair err:", err)
+		shortURL, err = process.ShortURLforOrigURL(origURL)
+		if err != nil && !errors.Is(err, storage.ErrDBOrigURLExists) {
+			log.Println("[ERROR] handlers -> JSONShortURL: ShortURLforOrigURL err:", err)
 			resp.WriteString(w, http.StatusBadRequest, "invalid data")
 			return
 		}
@@ -91,6 +88,6 @@ func PostBatch(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	log.Println("PostBatch: OK")
+	log.Println("[INFO] handlers -> PostBatch: OK")
 	resp.JSON(w, http.StatusCreated, respBody)
 }

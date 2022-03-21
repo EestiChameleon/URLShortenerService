@@ -32,7 +32,7 @@ func JSONShortURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println("[INFO] handlers -> JSONShortURL: json.Unmarshal(byteBody, &reqBody)")
+	log.Println("[DEBUG] handlers -> JSONShortURL: json.Unmarshal(byteBody, &reqBody)")
 	if err = json.Unmarshal(byteBody, &reqBody); err != nil {
 		log.Println("[ERROR] handlers -> JSONShortURL: unable to unmarshal body:", err)
 		resp.WriteString(w, http.StatusBadRequest, "invalid data")
@@ -42,7 +42,7 @@ func JSONShortURL(w http.ResponseWriter, r *http.Request) {
 	// check if it's not empty
 	origURL := reqBody.URL
 	if origURL == "" {
-		log.Println("[INFO] handlers -> JSONShortURL: empty r.Body")
+		log.Println("[DEBUG] handlers -> JSONShortURL: empty r.Body")
 		resp.WriteString(w, http.StatusBadRequest, "invalid data")
 		return
 	}
@@ -50,7 +50,7 @@ func JSONShortURL(w http.ResponseWriter, r *http.Request) {
 	shortURL, err := process.ShortURLforOrigURL(origURL)
 	if err != nil {
 		if errors.Is(err, storage.ErrDBOrigURLExists) {
-			log.Println("[INFO] handlers -> JSONShortURL: shortURL & origURL pair exists")
+			log.Println("[DEBUG] handlers -> JSONShortURL: shortURL & origURL pair exists")
 			resp.JSON(w, http.StatusConflict, ResBody{shortURL})
 			return
 		}

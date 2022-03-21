@@ -14,7 +14,7 @@ func GetAllPairs(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		if errors.Is(err, storage.ErrMemoryNotFound) {
-			log.Println("[INFO] handlers -> GetAllPairs: user pairs not found")
+			log.Println("[DEBUG] handlers -> GetAllPairs: user pairs not found")
 			resp.NoContent(w, http.StatusNoContent)
 			return
 		}
@@ -24,7 +24,7 @@ func GetAllPairs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(pairs) == 0 {
-		log.Println("[INFO] handlers -> GetAllPairs: user pairs not found")
+		log.Println("[DEBUG] handlers -> GetAllPairs: user pairs not found")
 		resp.NoContent(w, http.StatusNoContent)
 		return
 	}
