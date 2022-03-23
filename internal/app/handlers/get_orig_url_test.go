@@ -8,8 +8,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 )
 
@@ -57,10 +59,22 @@ func TestGetOrigURL(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodGet, tt.request, nil)
-			if tt.request == "/test" {
-				storage.Pairs = storage.TestNewFile()
+			// envs
+			cfg.Envs.BaseURL = "http://localhost:8080"
+			//cfg.Envs.FileStoragePath = "tmp/testFile"
+			//cfg.Envs.DatabaseDSN = "postgresql://localhost:5432/yandex_practicum_db"
+			if err := storage.InitStorage(); err != nil {
+				log.Fatal(err)
 			}
-			cfg.GetEnvs()
+			if tt.request == "/test" {
+				storage.User.SetUserID("testUser")
+				storage.User.SavePair(storage.Pair{
+					ShortURL: "http://localhost:8080/test",
+					OrigURL:  "https://jwt.io/",
+				})
+			}
+			defer os.Remove(cfg.Envs.FileStoragePath)
+
 			// создаём новый Recorder
 			w := httptest.NewRecorder()
 			r := chi.NewRouter()

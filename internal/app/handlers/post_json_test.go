@@ -1,11 +1,13 @@
 package handlers
 
 import (
+	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
 	resp "github.com/EestiChameleon/URLShortenerService/internal/app/responses"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -41,23 +43,12 @@ func TestJSONShortURL(t *testing.T) {
 		{
 			name:        "POST test #2: wrong incoming json -> 400",
 			contentType: resp.MIMEApplicationJSONCharsetUTF8,
-			request:     "http://localhost:8080/",
+			request:     "http://localhost:8080/api/shorten",
 			body:        `{"urly":"https://jwt.io/"}`,
 			want: want{
 				contentType: resp.MIMETextPlainCharsetUTF8,
 				respMessage: "invalid data",
 				statusCode:  400,
-			},
-		},
-		{
-			name:        "POST test #3: wrong content type -> 400",
-			contentType: resp.MIMETextPlainCharsetUTF8,
-			request:     "http://localhost:8080/",
-			body:        `{"url":"https://jwt.io/"}`,
-			want: want{
-				contentType: resp.MIMETextPlainCharsetUTF8,
-				statusCode:  400,
-				respMessage: "invalid data",
 			},
 		},
 	}
@@ -69,12 +60,15 @@ func TestJSONShortURL(t *testing.T) {
 			w := httptest.NewRecorder()
 			// определяем хендлер
 			h := http.HandlerFunc(JSONShortURL)
+			// envs
+			cfg.Envs.BaseURL = "http://localhost:8080"
+			//cfg.Envs.FileStoragePath = "tmp/testFile"
+			//cfg.Envs.DatabaseDSN = "postgresql://localhost:5432/yandex_practicum_db"
 			// запускаем сервер
-			storage.Pairs = storage.TestNewFile()
-			if err := storage.Pairs.GetFile(); err != nil {
-				panic(err)
+			if err := storage.InitStorage(); err != nil {
+				log.Fatal(err)
 			}
-			defer os.Remove(storage.Pairs.File.Name())
+			defer os.Remove(cfg.Envs.FileStoragePath)
 			h.ServeHTTP(w, request)
 			res := w.Result()
 

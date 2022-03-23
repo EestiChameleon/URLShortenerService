@@ -2,6 +2,7 @@ package server
 
 import (
 	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
+	cmw "github.com/EestiChameleon/URLShortenerService/internal/app/custommw"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/handlers"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -9,7 +10,7 @@ import (
 	"net/http"
 )
 
-func Start() {
+func Start() error {
 	// Chi instance
 	router := chi.NewRouter()
 
@@ -18,26 +19,29 @@ func Start() {
 	router.Use(middleware.RealIP)
 	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
+	// custom middleware
+	router.Use(cmw.CheckCookie)
 
 	// Set a timeout value on the request context (ctx), that will signal
 	// through ctx.Done() that the request has timed out and further
 	// processing should be stopped.
-	//router.Use(middleware.Timeout(60 * time.Second))
+	// router.Use(middleware.Timeout(60 * time.Second))
 
 	// Routes
-	router.Get("/{id}", handlers.GetOrigURL)
+	router.With(cmw.ResponseGZIP).Get("/{id}", handlers.GetOrigURL)
+	router.With(cmw.ResponseGZIP).Get("/api/user/urls", handlers.GetAllPairs)
+	router.Get("/ping", handlers.PingDatabase)
 
-	router.Post("/", handlers.PostProvideShortURL)
-	router.Post("/api/shorten", handlers.JSONShortURL)
+	router.With(cmw.RequestGZIP, cmw.ResponseGZIP).Post("/", handlers.PostProvideShortURL)
+	router.With(cmw.RequestGZIP, cmw.ResponseGZIP).Post("/api/shorten", handlers.JSONShortURL)
+	router.With(cmw.RequestGZIP, cmw.ResponseGZIP).Post("/api/shorten/batch", handlers.PostBatch)
 
 	// Start server
 	s := http.Server{
 		Addr:    cfg.Envs.SrvAddr,
 		Handler: router,
-		//ReadTimeout: 30 * time.Second, // customize http.Server timeouts
+		// ReadTimeout: 30 * time.Second, // customize http.Server timeouts
 	}
 
-	if err := s.ListenAndServe(); err != http.ErrServerClosed {
-		panic(err)
-	}
+	return s.ListenAndServe()
 }
