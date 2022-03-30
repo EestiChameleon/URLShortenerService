@@ -171,3 +171,8 @@ func (m *MemoryStorage) UpdateFile() error {
 	log.Println("memory_storage UpdateFile: OK")
 	return nil
 }
+
+// BatchDelete - заглушка для соответствия интерфейсу
+func (m *MemoryStorage) BatchDelete(shortURLs []string) error {
+	return nil
+}

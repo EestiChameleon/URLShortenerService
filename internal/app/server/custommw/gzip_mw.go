@@ -2,7 +2,7 @@ package custommw
 
 import (
 	"compress/gzip"
-	resp "github.com/EestiChameleon/URLShortenerService/internal/app/responses"
+	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/responses"
 	"io"
 	"log"
 	"net/http"

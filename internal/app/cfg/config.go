@@ -35,14 +35,3 @@ func GetEnvs() error {
 
 	return nil
 }
-
-func GetFlag() {
-	log.Println("[INFO] cfg -> GetFlag: flag declaration start")
-	flag.StringVar(&Envs.SrvAddr, "a", "localhost:8080", "SERVER_ADDRESS to listen on")
-	flag.StringVar(&Envs.BaseURL, "b", "http://localhost:8080", "BASE_URL of the shorten result URL")
-	flag.StringVar(&Envs.FileStoragePath, "f", "tmp/urlPairsData", "FILE_STORAGE_PATH. Directory of the origin&shorten url pairs file")
-	flag.StringVar(&Envs.DatabaseDSN, "d", "postgresql://localhost:5432/yandex_practicum_db", "DATABASE_DSN. Address for connection to DB")
-
-	log.Println("[INFO] cfg -> GetFlag: flag parse start")
-	flag.Parse()
-}
