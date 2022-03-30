@@ -192,13 +192,13 @@ func (db *DBStorage) BatchDelete(shortURLs []string) error {
 	return nil
 }
 
-func MakeBatchUpdateStatement(shortURLids []string) string {
+func MakeBatchUpdateStatement(shortURLs []string) string {
 	log.Println("[INFO] db -> MakeBatchUpdateStatement: start")
 	strBegin := "UPDATE shorten_pairs SET deleted = true FROM ( VALUES "
 	strEnd := " ) AS myvalues (shortURL) WHERE shorten_pairs.short_url = myvalues.shortURL;"
 	var list []string
-	for _, v := range shortURLids {
-		value := fmt.Sprintf("('%s/%s')", cfg.Envs.BaseURL, v)
+	for _, v := range shortURLs {
+		value := fmt.Sprintf("('%s')", v)
 		list = append(list, value)
 	}
 

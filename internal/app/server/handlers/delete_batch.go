@@ -3,6 +3,8 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
 	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/responses"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 	"io"
@@ -38,9 +40,15 @@ func DeleteBatch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var shortURLs []string
+	for _, id := range reqBody {
+		shortURL := fmt.Sprintf("%s/%s", cfg.Envs.BaseURL, id)
+		shortURLs = append(shortURLs, shortURL)
+	}
+
 	g, _ := errgroup.WithContext(context.Background())
 	g.Go(func() error {
-		return storage.User.BatchDelete(reqBody)
+		return storage.User.BatchDelete(shortURLs)
 	})
 	if err = g.Wait(); err != nil {
 		log.Println("[ERROR] handlers -> DeleteBatch: db query failed:", err)
