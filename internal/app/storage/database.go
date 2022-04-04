@@ -54,16 +54,16 @@ func InitDBStorage() (*DBStorage, error) {
 
 func (db *DBStorage) GetOrigURL(shortURL string) (origURL string, err error) {
 	log.Println("[INFO] db -> GetOrigURL: start")
-	var deleted_at sql.NullTime
+	var deletedAt sql.NullTime
 	if err = db.DB.QueryRow(context.Background(),
-		"SELECT orig_url, deleted_at FROM shorten_pairs WHERE short_url=$1;", shortURL).Scan(&origURL, &deleted_at); err != nil {
+		"SELECT orig_url, deleted_at FROM shorten_pairs WHERE short_url=$1;", shortURL).Scan(&origURL, &deletedAt); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return ``, nil
 		}
 		return ``, err
 	}
 
-	if deleted_at.Valid {
+	if deletedAt.Valid {
 		return ``, ErrShortURLDeleted
 	}
 
