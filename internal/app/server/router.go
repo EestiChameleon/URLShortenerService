@@ -2,8 +2,8 @@ package server
 
 import (
 	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
-	cmw "github.com/EestiChameleon/URLShortenerService/internal/app/custommw"
-	"github.com/EestiChameleon/URLShortenerService/internal/app/handlers"
+	"github.com/EestiChameleon/URLShortenerService/internal/app/server/custommw"
+	"github.com/EestiChameleon/URLShortenerService/internal/app/server/handlers"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 
@@ -20,7 +20,7 @@ func Start() error {
 	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
 	// custom middleware
-	router.Use(cmw.CheckCookie)
+	router.Use(custommw.CheckCookie)
 
 	// Set a timeout value on the request context (ctx), that will signal
 	// through ctx.Done() that the request has timed out and further
@@ -28,13 +28,15 @@ func Start() error {
 	// router.Use(middleware.Timeout(60 * time.Second))
 
 	// Routes
-	router.With(cmw.ResponseGZIP).Get("/{id}", handlers.GetOrigURL)
-	router.With(cmw.ResponseGZIP).Get("/api/user/urls", handlers.GetAllPairs)
+	router.With(custommw.ResponseGZIP).Get("/{id}", handlers.GetOrigURL)
+	router.With(custommw.ResponseGZIP).Get("/api/user/urls", handlers.GetAllPairs)
 	router.Get("/ping", handlers.PingDatabase)
 
-	router.With(cmw.RequestGZIP, cmw.ResponseGZIP).Post("/", handlers.PostProvideShortURL)
-	router.With(cmw.RequestGZIP, cmw.ResponseGZIP).Post("/api/shorten", handlers.JSONShortURL)
-	router.With(cmw.RequestGZIP, cmw.ResponseGZIP).Post("/api/shorten/batch", handlers.PostBatch)
+	router.With(custommw.RequestGZIP, custommw.ResponseGZIP).Post("/", handlers.PostProvideShortURL)
+	router.With(custommw.RequestGZIP, custommw.ResponseGZIP).Post("/api/shorten", handlers.JSONShortURL)
+	router.With(custommw.RequestGZIP, custommw.ResponseGZIP).Post("/api/shorten/batch", handlers.PostBatch)
+
+	router.With(custommw.RequestGZIP, custommw.ResponseGZIP).Delete("/api/user/urls", handlers.DeleteBatch)
 
 	// Start server
 	s := http.Server{

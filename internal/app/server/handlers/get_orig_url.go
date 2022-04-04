@@ -1,9 +1,10 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
-	resp "github.com/EestiChameleon/URLShortenerService/internal/app/responses"
+	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/responses"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 	"github.com/go-chi/chi/v5"
 	"log"
@@ -21,6 +22,11 @@ func GetOrigURL(w http.ResponseWriter, r *http.Request) {
 	log.Println("GetOrigURL: search for shortURL pair - ", shortURL)
 	origURL, err := storage.User.GetOrigURL(shortURL)
 	if err != nil || origURL == "" {
+		if errors.Is(err, storage.ErrShortURLDeleted) {
+			log.Println("GetOrigURL: requested shortURL is deleted -> 410")
+			resp.NoContent(w, http.StatusGone)
+			return
+		}
 		log.Println("GetOrigURL: orig URL not found -> 400")
 		resp.WriteString(w, http.StatusBadRequest, "invalid id")
 		return

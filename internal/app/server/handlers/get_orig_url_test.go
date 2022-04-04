@@ -2,8 +2,9 @@ package handlers
 
 import (
 	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
-	resp "github.com/EestiChameleon/URLShortenerService/internal/app/responses"
+	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/responses"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
+	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"io/ioutil"
@@ -11,56 +12,53 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"strings"
 	"testing"
 )
 
-func TestPostProvideShortURL(t *testing.T) {
+func TestGetOrigURL(t *testing.T) {
 	type want struct {
-		contentType string
-		statusCode  int
-		respMessage string
+		contentType    string
+		statusCode     int
+		respMessage    string
+		headerLocation string
 	}
 
 	tests := []struct {
-		name        string
-		contentType string
-		request     string
-		body        string
-		want        want
+		name    string
+		request string
+		want    want
 	}{
 		{
-			name:        "POST test #1: url -> 201",
-			contentType: resp.MIMETextPlainCharsetUTF8,
-			request:     "http://localhost:8080/",
-			body:        "https://jwt.io/",
+			name:    "GET test #1: test url -> 307",
+			request: "/test",
 			want: want{
-				contentType: resp.MIMETextPlainCharsetUTF8,
-				statusCode:  201,
-				respMessage: "",
+				contentType:    resp.MIMETextPlainCharsetUTF8,
+				statusCode:     307,
+				headerLocation: "https://jwt.io/",
 			},
 		},
 		{
-			name:        "POST test #2: empty url -> 400",
-			contentType: resp.MIMETextPlainCharsetUTF8,
-			request:     "http://localhost:8080/",
-			body:        "",
+			name:    "GET test #2: empty id -> 404",
+			request: "/",
 			want: want{
 				contentType: resp.MIMETextPlainCharsetUTF8,
-				respMessage: "invalid url",
+				statusCode:  404,
+				respMessage: "404 page not found\n",
+			},
+		},
+		{
+			name:    "GET test #3: wrong id -> 400",
+			request: "/666xxx",
+			want: want{
+				contentType: resp.MIMETextPlainCharsetUTF8,
 				statusCode:  400,
+				respMessage: "invalid id",
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			request := httptest.NewRequest(http.MethodPost, tt.request, strings.NewReader(tt.body))
-			request.Header.Set(resp.HeaderContentType, tt.contentType)
-			// создаём новый Recorder
-			w := httptest.NewRecorder()
-			// определяем хендлер
-			h := http.HandlerFunc(PostProvideShortURL)
-			// запускаем сервер
+			request := httptest.NewRequest(http.MethodGet, tt.request, nil)
 			// envs
 			cfg.Envs.BaseURL = "http://localhost:8080"
 			//cfg.Envs.FileStoragePath = "tmp/testFile"
@@ -68,16 +66,27 @@ func TestPostProvideShortURL(t *testing.T) {
 			if err := storage.InitStorage(); err != nil {
 				log.Fatal(err)
 			}
+			if tt.request == "/test" {
+				storage.User.SetUserID("testUser")
+				storage.User.SavePair(storage.Pair{
+					ShortURL: "http://localhost:8080/test",
+					OrigURL:  "https://jwt.io/",
+				})
+			}
 			defer os.Remove(cfg.Envs.FileStoragePath)
-			h.ServeHTTP(w, request)
+
+			// создаём новый Recorder
+			w := httptest.NewRecorder()
+			r := chi.NewRouter()
+			// определяем хендлер
+			r.Get("/{id}", GetOrigURL)
+			// запускаем сервер
+			r.ServeHTTP(w, request)
 			res := w.Result()
 
-			// проверяем код ответа
 			assert.Equal(t, tt.want.statusCode, res.StatusCode)
-			// заголовок ответа
 			assert.Equal(t, tt.want.contentType, res.Header.Get("Content-Type"))
 
-			// получаем и проверяем тело запроса
 			if tt.want.respMessage != "" {
 				defer res.Body.Close()
 				urlResult, err := ioutil.ReadAll(res.Body)
@@ -85,6 +94,7 @@ func TestPostProvideShortURL(t *testing.T) {
 
 				assert.Equal(t, tt.want.respMessage, string(urlResult))
 			}
+
 		})
 	}
 }

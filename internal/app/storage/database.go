@@ -2,18 +2,22 @@ package storage
 
 import (
 	"context"
+	"database/sql"
 	"errors"
+	"fmt"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/service/data"
 	"github.com/georgysavva/scany/pgxscan"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"log"
+	"strings"
 )
 
 var (
 	pool               *pgxpool.Pool
 	ErrDBOrigURLExists = errors.New("pair with given orig_url already exists")
+	ErrShortURLDeleted = errors.New("requested shortURL is deleted")
 )
 
 type DBStorage struct {
@@ -22,7 +26,7 @@ type DBStorage struct {
 }
 
 func InitDBStorage() (*DBStorage, error) {
-	log.Println("db_storage InitDBStorage: connect to DB")
+	log.Println("[INFO] db -> InitDBStorage: start")
 	conn, err := ConnectToDB()
 	if err != nil {
 		log.Println("db_storage InitDBStorage: err - ", err)
@@ -33,7 +37,7 @@ func InitDBStorage() (*DBStorage, error) {
 	log.Println("db_storage InitDBStorage: check for table existence - create if it's missing")
 	_, err = conn.Exec(context.Background(),
 		"DROP TABLE IF EXISTS shorten_pairs; "+
-			"CREATE TABLE IF NOT EXISTS shorten_pairs (short_url varchar(255) not null, orig_url varchar(255) not null, user_id   varchar(42)); "+
+			"CREATE TABLE IF NOT EXISTS shorten_pairs (short_url varchar(255) not null, orig_url varchar(255) not null, user_id varchar(42), deleted_at timestamp); "+
 			"create index IF NOT EXISTS shorten_pairs_short_url_index on shorten_pairs (short_url); "+
 			"create unique index IF NOT EXISTS shorten_pairs_orig_url_uindex on public.shorten_pairs (orig_url);")
 	if err != nil {
@@ -49,18 +53,25 @@ func InitDBStorage() (*DBStorage, error) {
 //-------------------- DATABASE QUERIES --------------------
 
 func (db *DBStorage) GetOrigURL(shortURL string) (origURL string, err error) {
+	log.Println("[INFO] db -> GetOrigURL: start")
+	var deletedAt sql.NullTime
 	if err = db.DB.QueryRow(context.Background(),
-		"SELECT orig_url FROM shorten_pairs WHERE short_url=$1;", shortURL).Scan(&origURL); err != nil {
+		"SELECT orig_url, deleted_at FROM shorten_pairs WHERE short_url=$1;", shortURL).Scan(&origURL, &deletedAt); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return ``, nil
 		}
 		return ``, err
 	}
 
+	if deletedAt.Valid {
+		return ``, ErrShortURLDeleted
+	}
+
 	return origURL, nil
 }
 
 func (db *DBStorage) GetShortURL(origURL string) (shortURL string, err error) {
+	log.Println("[INFO] db -> GetShortURL: start")
 	if err = db.DB.QueryRow(context.Background(),
 		"SELECT short_url FROM shorten_pairs WHERE orig_url=$1;", origURL).Scan(&shortURL); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -73,6 +84,7 @@ func (db *DBStorage) GetShortURL(origURL string) (shortURL string, err error) {
 }
 
 func (db *DBStorage) SavePair(pair Pair) error {
+	log.Println("[INFO] db -> SavePair: start")
 	tag, err := db.DB.Exec(context.Background(),
 		" INSERT INTO shorten_pairs (short_url, orig_url, user_id) "+
 			"VALUES ($1, $2, $3) "+
@@ -90,14 +102,18 @@ func (db *DBStorage) SavePair(pair Pair) error {
 }
 
 func (db *DBStorage) GetUserURLs() (pairs []Pair, err error) {
+	log.Println("[INFO] db -> GetUserURLs: start")
 	if err = pgxscan.Select(context.Background(), db.DB, &pairs,
 		"SELECT short_url, orig_url FROM shorten_pairs WHERE user_id=$1;", db.ID); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
+			log.Println("[ERROR] db -> GetUserURLs: not found")
 			return nil, nil
 		}
+		log.Println("[ERROR] db -> GetUserURLs:", err)
 		return nil, err
 	}
 
+	log.Println("[DEBUG] db -> GetUserURLs: OK")
 	return pairs, nil
 }
 
@@ -105,53 +121,82 @@ func (db *DBStorage) GetUserURLs() (pairs []Pair, err error) {
 
 // ConnectToDB method initialize connection to the indicated DB
 func ConnectToDB() (*pgxpool.Pool, error) {
-	log.Println("db_storage ConnectToDB: start")
+	log.Println("[INFO] db -> ShutDown: start")
 	conn, err := pgxpool.Connect(context.Background(), cfg.Envs.DatabaseDSN)
 	if err != nil {
 		log.Printf("database ConnectToDB: Unable to connect to database: %v\n", err)
 		return nil, err
 	}
 
-	log.Println("db_storage ConnectToDB: connected. end")
+	log.Println("[DEBUG] db -> ConnectToDB: OK")
 	return conn, nil
 }
 
 // ShutDown closes all connections in the DB pool
 func (db *DBStorage) ShutDown() error {
-	log.Println("db_storage ShutDown: start")
+	log.Println("[INFO] db -> ShutDown: start")
 	db.DB.Close()
 	return nil
 }
 
 func (db *DBStorage) SetUserID(userID string) {
+	log.Println("[INFO] db -> SetUserID: OK")
 	db.ID = userID
 }
 
 func (db *DBStorage) CreateShortURL() (shortURL string, err error) {
-	log.Println("db_storage GetShortURL: start")
+	log.Println("[INFO] db -> GetShortURL: start")
 	shortURL, err = data.ShortURL()
 	if err != nil {
 		log.Println(err)
 		return ``, err
 	}
 
-	log.Println("db_storage GetShortURL: check for already existing shortURL")
+	log.Println("[DEBUG] db GetShortURL: check for already existing shortURL")
 	origURL, err := db.GetOrigURL(shortURL)
 	if err != nil {
-		log.Println(err)
+		log.Println("[ERROR] db -> GetOrigURL:", err)
 	}
 	if origURL != "" {
-		log.Println("db_storage GetShortURL: shortURL already exists -> try again")
+		log.Println("[DEBUG] db -> GetShortURL: shortURL already exists -> try again")
 		return db.CreateShortURL()
 	}
 
-	log.Println("db_storage GetShortURL: OK")
+	log.Println("[DEBUG] db -> GetShortURL: OK")
 	return shortURL, nil
 }
 
 // PingDB executes an empty sql statement against DB pool.
 // If the sql returns without error, the database Ping is considered successful, otherwise, the error is returned.
 func PingDB() error {
-	log.Println("db_storage PingDB: start")
+	log.Println("db -> PingDB: start")
 	return pool.Ping(context.Background())
+}
+
+func (db *DBStorage) BatchDelete(shortURLs []string) error {
+	log.Println("[INFO] db -> BatchDelete: start. ShortURLs to delete - ", shortURLs)
+	stmnt := MakeBatchUpdateStatement(shortURLs)
+	if _, err := db.DB.Exec(context.Background(), stmnt); err != nil {
+		return err
+	}
+
+	log.Println("[DEBUG] db -> BatchDelete: OK")
+	return nil
+}
+
+func MakeBatchUpdateStatement(shortURLs []string) string {
+	log.Println("[INFO] db -> MakeBatchUpdateStatement: start")
+	strBegin := "UPDATE shorten_pairs SET deleted_at = current_timestamp FROM ( VALUES "
+	strEnd := " ) AS myvalues (shortURL) WHERE shorten_pairs.short_url = myvalues.shortURL;"
+	var list []string
+	for _, v := range shortURLs {
+		value := fmt.Sprintf("('%s')", v)
+		list = append(list, value)
+	}
+
+	values := strings.Join(list, ", ")
+	statement := strBegin + values + strEnd
+
+	log.Println("[DEBUG] db -> MakeBatchUpdateStatement: OK")
+	return statement
 }
