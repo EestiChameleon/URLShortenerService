@@ -1,17 +1,14 @@
 package handlers
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
 	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/responses"
-	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
+	"github.com/EestiChameleon/URLShortenerService/internal/app/service/process"
 	"io"
 	"log"
 	"net/http"
-
-	"golang.org/x/sync/errgroup"
 )
 
 func DeleteBatch(w http.ResponseWriter, r *http.Request) {
@@ -46,17 +43,8 @@ func DeleteBatch(w http.ResponseWriter, r *http.Request) {
 		shortURLs = append(shortURLs, shortURL)
 	}
 
-	g, _ := errgroup.WithContext(context.Background())
-	g.Go(func() error {
-		return storage.User.BatchDelete(shortURLs)
-	})
-	if err = g.Wait(); err != nil {
-		log.Println("[ERROR] handlers -> DeleteBatch: db query failed:", err)
-	}
-
-	//if err = storage.User.BatchDelete(reqBody); err != nil {
-	//	log.Println("[ERROR] handlers -> DeleteBatch: db query failed:", err)
-	//}
+	log.Println("[INFO] handlers -> DeleteBatch: shortURLs list sent to process.BatchDelete")
+	process.BatchDelete(shortURLs)
 
 	log.Println("[INFO] handlers -> DeleteBatch: OK")
 	resp.NoContent(w, http.StatusAccepted)

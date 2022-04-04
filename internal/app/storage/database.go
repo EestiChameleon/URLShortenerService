@@ -144,6 +144,10 @@ func (db *DBStorage) SetUserID(userID string) {
 	db.ID = userID
 }
 
+func (db *DBStorage) GetUserID() string {
+	return db.ID
+}
+
 func (db *DBStorage) CreateShortURL() (shortURL string, err error) {
 	log.Println("[INFO] db -> GetShortURL: start")
 	shortURL, err = data.ShortURL()

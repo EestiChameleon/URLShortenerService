@@ -17,6 +17,7 @@ type Data interface {
 	BatchDelete(shortURLs []string) error       // db function - set shorten_pairs.deleted = true for the given shortURLs lsit
 
 	SetUserID(userID string)         // save userID to struct
+	GetUserID() string               // provide userID
 	CreateShortURL() (string, error) // creates a new shortURL (checks for being unique in the storage)
 
 	ShutDown() error // close the storage

@@ -125,6 +125,10 @@ func (m *MemoryStorage) SetUserID(userID string) {
 	m.ID = userID
 }
 
+func (m *MemoryStorage) GetUserID() string {
+	return m.ID
+}
+
 func (m *MemoryStorage) CreateShortURL() (shortURL string, err error) {
 	log.Println("memory_storage GetShortURL: start")
 	shortURL, err = data.ShortURL()
