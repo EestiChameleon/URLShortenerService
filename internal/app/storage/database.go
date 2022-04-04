@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
@@ -36,7 +37,7 @@ func InitDBStorage() (*DBStorage, error) {
 	log.Println("db_storage InitDBStorage: check for table existence - create if it's missing")
 	_, err = conn.Exec(context.Background(),
 		"DROP TABLE IF EXISTS shorten_pairs; "+
-			"CREATE TABLE IF NOT EXISTS shorten_pairs (short_url varchar(255) not null, orig_url varchar(255) not null, user_id varchar(42), deleted bool default false); "+
+			"CREATE TABLE IF NOT EXISTS shorten_pairs (short_url varchar(255) not null, orig_url varchar(255) not null, user_id varchar(42), deleted_at timestamp); "+
 			"create index IF NOT EXISTS shorten_pairs_short_url_index on shorten_pairs (short_url); "+
 			"create unique index IF NOT EXISTS shorten_pairs_orig_url_uindex on public.shorten_pairs (orig_url);")
 	if err != nil {
@@ -53,16 +54,16 @@ func InitDBStorage() (*DBStorage, error) {
 
 func (db *DBStorage) GetOrigURL(shortURL string) (origURL string, err error) {
 	log.Println("[INFO] db -> GetOrigURL: start")
-	var deleted bool
+	var deleted_at sql.NullTime
 	if err = db.DB.QueryRow(context.Background(),
-		"SELECT orig_url, deleted FROM shorten_pairs WHERE short_url=$1;", shortURL).Scan(&origURL, &deleted); err != nil {
+		"SELECT orig_url, deleted_at FROM shorten_pairs WHERE short_url=$1;", shortURL).Scan(&origURL, &deleted_at); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return ``, nil
 		}
 		return ``, err
 	}
 
-	if deleted {
+	if deleted_at.Valid {
 		return ``, ErrShortURLDeleted
 	}
 
@@ -172,15 +173,6 @@ func PingDB() error {
 	return pool.Ping(context.Background())
 }
 
-func (db *DBStorage) Delete(shortURL string) error {
-	if _, err := db.DB.Exec(context.Background(),
-		"DELETE FROM shorten_pairs WHERE short_url = $1 ", shortURL); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (db *DBStorage) BatchDelete(shortURLs []string) error {
 	log.Println("[INFO] db -> BatchDelete: start. ShortURLs to delete - ", shortURLs)
 	stmnt := MakeBatchUpdateStatement(shortURLs)
@@ -194,7 +186,7 @@ func (db *DBStorage) BatchDelete(shortURLs []string) error {
 
 func MakeBatchUpdateStatement(shortURLs []string) string {
 	log.Println("[INFO] db -> MakeBatchUpdateStatement: start")
-	strBegin := "UPDATE shorten_pairs SET deleted = true FROM ( VALUES "
+	strBegin := "UPDATE shorten_pairs SET deleted_at = current_timestamp FROM ( VALUES "
 	strEnd := " ) AS myvalues (shortURL) WHERE shorten_pairs.short_url = myvalues.shortURL;"
 	var list []string
 	for _, v := range shortURLs {
