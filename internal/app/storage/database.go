@@ -86,7 +86,7 @@ func (db *DBStorage) GetShortURL(origURL string) (shortURL string, err error) {
 func (db *DBStorage) SavePair(pair Pair) error {
 	log.Println("[INFO] db -> SavePair: start")
 	tag, err := db.DB.Exec(context.Background(),
-		" INSERT INTO shorten_pairs (short_url, orig_url, user_id) "+
+		"INSERT INTO shorten_pairs (short_url, orig_url, user_id) "+
 			"VALUES ($1, $2, $3) "+
 			"ON CONFLICT(orig_url) DO NOTHING;",
 		pair.ShortURL, pair.OrigURL, db.ID)
