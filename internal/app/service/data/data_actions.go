@@ -4,9 +4,11 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
-	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
-	"github.com/robbert229/jwt"
 	"log"
+
+	"github.com/robbert229/jwt"
+
+	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
 )
 
 func ShortURL() (shortURL string, err error) {

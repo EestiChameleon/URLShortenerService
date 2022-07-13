@@ -3,12 +3,14 @@ package handlers
 import (
 	"errors"
 	"fmt"
+	"log"
+	"net/http"
+
+	"github.com/go-chi/chi/v5"
+
 	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
 	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/responses"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
-	"github.com/go-chi/chi/v5"
-	"log"
-	"net/http"
 )
 
 func GetOrigURL(w http.ResponseWriter, r *http.Request) {

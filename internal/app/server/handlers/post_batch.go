@@ -3,12 +3,13 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
-	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/responses"
-	"github.com/EestiChameleon/URLShortenerService/internal/app/service/process"
-	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 	"io"
 	"log"
 	"net/http"
+
+	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/responses"
+	"github.com/EestiChameleon/URLShortenerService/internal/app/service/process"
+	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 )
 
 type BatchReqPair struct {

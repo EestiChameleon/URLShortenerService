@@ -2,8 +2,9 @@ package process
 
 import (
 	"errors"
-	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 	"log"
+
+	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 )
 
 func ShortURLforOrigURL(origURL string) (string, error) {

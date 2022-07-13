@@ -1,11 +1,12 @@
 package custommw
 
 import (
+	"log"
+	"net/http"
+
 	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/responses"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/service/data"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
-	"log"
-	"net/http"
 )
 
 func CheckCookie(next http.Handler) http.Handler {

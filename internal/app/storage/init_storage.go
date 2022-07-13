@@ -1,8 +1,9 @@
 package storage
 
 import (
-	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
 	"log"
+
+	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
 )
 
 var (

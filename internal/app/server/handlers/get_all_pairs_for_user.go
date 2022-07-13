@@ -2,10 +2,11 @@ package handlers
 
 import (
 	"errors"
-	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/responses"
-	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 	"log"
 	"net/http"
+
+	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/responses"
+	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 )
 
 func GetAllPairs(w http.ResponseWriter, r *http.Request) {

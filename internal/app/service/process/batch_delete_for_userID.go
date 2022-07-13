@@ -2,9 +2,11 @@ package process
 
 import (
 	"context"
-	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
-	"golang.org/x/sync/errgroup"
 	"log"
+
+	"golang.org/x/sync/errgroup"
+
+	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 )
 
 func BatchDelete(shortURL []string) {

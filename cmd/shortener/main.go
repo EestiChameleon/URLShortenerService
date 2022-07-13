@@ -1,10 +1,11 @@
 package main
 
 import (
+	"log"
+
 	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/server"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
-	"log"
 )
 
 func init() {

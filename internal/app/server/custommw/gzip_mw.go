@@ -2,11 +2,12 @@ package custommw
 
 import (
 	"compress/gzip"
-	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/responses"
 	"io"
 	"log"
 	"net/http"
 	"strings"
+
+	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/responses"
 )
 
 type gzipWriter struct {

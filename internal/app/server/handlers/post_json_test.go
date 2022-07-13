@@ -1,11 +1,6 @@
 package handlers
 
 import (
-	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
-	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/responses"
-	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -13,6 +8,13 @@ import (
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
+	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/responses"
+	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 )
 
 func TestJSONShortURL(t *testing.T) {

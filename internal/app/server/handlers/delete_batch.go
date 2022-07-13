@@ -3,12 +3,13 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
-	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/responses"
-	"github.com/EestiChameleon/URLShortenerService/internal/app/service/process"
 	"io"
 	"log"
 	"net/http"
+
+	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
+	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/responses"
+	"github.com/EestiChameleon/URLShortenerService/internal/app/service/process"
 )
 
 func DeleteBatch(w http.ResponseWriter, r *http.Request) {

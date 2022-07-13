@@ -3,10 +3,11 @@ package storage
 import (
 	"encoding/json"
 	"errors"
-	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
-	"github.com/EestiChameleon/URLShortenerService/internal/app/service/data"
 	"log"
 	"os"
+
+	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
+	"github.com/EestiChameleon/URLShortenerService/internal/app/service/data"
 )
 
 var (

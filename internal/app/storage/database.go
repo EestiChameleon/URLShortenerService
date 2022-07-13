@@ -5,13 +5,15 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
-	"github.com/EestiChameleon/URLShortenerService/internal/app/service/data"
+	"log"
+	"strings"
+
 	"github.com/georgysavva/scany/pgxscan"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"log"
-	"strings"
+
+	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
+	"github.com/EestiChameleon/URLShortenerService/internal/app/service/data"
 )
 
 var (
