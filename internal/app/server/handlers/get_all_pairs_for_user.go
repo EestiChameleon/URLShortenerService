@@ -9,6 +9,8 @@ import (
 	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 )
 
+// GetAllPairs handler provides as response all created pairs "Original URL":"Shorten URL" created for the user.
+// User ID is obtained from the cookie.
 func GetAllPairs(w http.ResponseWriter, r *http.Request) {
 	log.Println("[INFO] handlers -> GetAllPairs start: search pairs")
 	pairs, err := storage.User.GetUserURLs()

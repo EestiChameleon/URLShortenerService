@@ -43,6 +43,8 @@ type BatchResp []BatchRespPair
 //	   ...
 //	]
 
+// PostBatch handler receives a list of original URLs in format `[{"correlation_id": "<ID>", "original_url": "<original URL>"}]`.
+// For all received URLs it creates a short URL pair. As response: `[{"correlation_id": "<ID>", "short_url": "<short URL>"}]`.
 func PostBatch(w http.ResponseWriter, r *http.Request) {
 	var (
 		reqBody  BatchReq

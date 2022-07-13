@@ -11,6 +11,7 @@ import (
 	"net/http"
 )
 
+// Start starts the server router.
 func Start() error {
 	// Chi instance
 	router := chi.NewRouter()

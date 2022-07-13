@@ -13,6 +13,7 @@ import (
 	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 )
 
+// GetOrigURL handler searches the original URL that corresponds to the given shorten URL.
 func GetOrigURL(w http.ResponseWriter, r *http.Request) {
 	// get and check the passed ID
 	log.Println("GetOrigURL start: search id")

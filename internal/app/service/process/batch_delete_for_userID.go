@@ -9,6 +9,7 @@ import (
 	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 )
 
+// BatchDelete function call a DB delete query for all passed short URLs owned by userID from cookie.
 func BatchDelete(shortURL []string) {
 	userURLs := filterByUserID(shortURL)
 	g, _ := errgroup.WithContext(context.Background())
@@ -20,6 +21,7 @@ func BatchDelete(shortURL []string) {
 	}
 }
 
+// filterByUserID filters the passed short URLs by stored in the memory UserID. UserID is obtained from the request cookie.
 func filterByUserID(shortURL []string) []string {
 	var filtredList []string
 

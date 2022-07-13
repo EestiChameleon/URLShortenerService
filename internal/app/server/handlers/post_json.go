@@ -12,16 +12,18 @@ import (
 	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 )
 
+// ReqBody struct is used to unmarshal incoming request body.
 type ReqBody struct {
 	URL string `json:"url"`
 }
 
+// ResBody struct is used to marshal outgoing response body.
 type ResBody struct {
 	Result string `json:"result"`
 }
 
-// JSONShortURL принимает в теле запроса JSON-объект {"url": "<some_url>"}
-// возвращает в ответ объект {"result": "<shorten_url>"}.
+// JSONShortURL handler receive a JSON {"url": "<original URL>"} and creates a short URL pair.
+// In the response it returns JSON {"result": "<short url>"}.
 func JSONShortURL(w http.ResponseWriter, r *http.Request) {
 	// read body
 	var reqBody ReqBody

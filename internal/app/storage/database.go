@@ -22,11 +22,14 @@ var (
 	ErrShortURLDeleted = errors.New("requested shortURL is deleted")
 )
 
+// DBStorage structure stores the UserID from the cookie and the DB connection pool structure.
 type DBStorage struct {
 	ID string
 	DB *pgxpool.Pool
 }
 
+// InitDBStorage initiates the DB connection and creates the shorten_pairs table.
+// If there is an old shorten_pairs table, it's dropped.
 func InitDBStorage() (*DBStorage, error) {
 	log.Println("[INFO] db -> InitDBStorage: start")
 	conn, err := ConnectToDB()
@@ -54,6 +57,7 @@ func InitDBStorage() (*DBStorage, error) {
 
 //-------------------- DATABASE QUERIES --------------------
 
+// GetOrigURL method gets from the DB the original URL for the passed short URL.
 func (db *DBStorage) GetOrigURL(shortURL string) (origURL string, err error) {
 	log.Println("[INFO] db -> GetOrigURL: start")
 	var deletedAt sql.NullTime
@@ -72,6 +76,7 @@ func (db *DBStorage) GetOrigURL(shortURL string) (origURL string, err error) {
 	return origURL, nil
 }
 
+// GetShortURL method gets from the DB the short URL for the passed original URL.
 func (db *DBStorage) GetShortURL(origURL string) (shortURL string, err error) {
 	log.Println("[INFO] db -> GetShortURL: start")
 	if err = db.DB.QueryRow(context.Background(),
@@ -85,6 +90,7 @@ func (db *DBStorage) GetShortURL(origURL string) (shortURL string, err error) {
 	return shortURL, nil
 }
 
+// SavePair method inserts in the DB new pair "original URL":"short URL" with user ID.
 func (db *DBStorage) SavePair(pair Pair) error {
 	log.Println("[INFO] db -> SavePair: start")
 	tag, err := db.DB.Exec(context.Background(),
@@ -103,6 +109,7 @@ func (db *DBStorage) SavePair(pair Pair) error {
 	return nil
 }
 
+// GetUserURLs method provides the user pairs list from the DB.
 func (db *DBStorage) GetUserURLs() (pairs []Pair, err error) {
 	log.Println("[INFO] db -> GetUserURLs: start")
 	if err = pgxscan.Select(context.Background(), db.DB, &pairs,
@@ -121,7 +128,7 @@ func (db *DBStorage) GetUserURLs() (pairs []Pair, err error) {
 
 //-------------------- DATABASE FUNCTIONS --------------------
 
-// ConnectToDB method initialize connection to the indicated DB
+// ConnectToDB method initialize connection to the indicated DB.
 func ConnectToDB() (*pgxpool.Pool, error) {
 	log.Println("[INFO] db -> ShutDown: start")
 	conn, err := pgxpool.Connect(context.Background(), cfg.Envs.DatabaseDSN)
@@ -134,22 +141,25 @@ func ConnectToDB() (*pgxpool.Pool, error) {
 	return conn, nil
 }
 
-// ShutDown closes all connections in the DB pool
+// ShutDown closes all connections in the DB pool.
 func (db *DBStorage) ShutDown() error {
 	log.Println("[INFO] db -> ShutDown: start")
 	db.DB.Close()
 	return nil
 }
 
+// SetUserID stores the user ID in the DBStorage structure.
 func (db *DBStorage) SetUserID(userID string) {
 	log.Println("[INFO] db -> SetUserID: OK")
 	db.ID = userID
 }
 
+// GetUserID shows the stored user ID in the DBStorage structure.
 func (db *DBStorage) GetUserID() string {
 	return db.ID
 }
 
+// CreateShortURL creates a unique new short URL.
 func (db *DBStorage) CreateShortURL() (shortURL string, err error) {
 	log.Println("[INFO] db -> GetShortURL: start")
 	shortURL, err = data.ShortURL()
@@ -179,6 +189,8 @@ func PingDB() error {
 	return pool.Ping(context.Background())
 }
 
+// BatchDelete method calls the sql query for multiple delete case.
+// As result - single delete query for all passed short URLs.
 func (db *DBStorage) BatchDelete(shortURLs []string) error {
 	log.Println("[INFO] db -> BatchDelete: start. ShortURLs to delete - ", shortURLs)
 	stmnt := MakeBatchUpdateStatement(shortURLs)
@@ -190,6 +202,8 @@ func (db *DBStorage) BatchDelete(shortURLs []string) error {
 	return nil
 }
 
+// MakeBatchUpdateStatement creates a sql statement for batch update for BatchDelete method.
+// As "deleted" we consider the pair where "deleted_at" is not null.
 func MakeBatchUpdateStatement(shortURLs []string) string {
 	log.Println("[INFO] db -> MakeBatchUpdateStatement: start")
 	strBegin := "UPDATE shorten_pairs SET deleted_at = current_timestamp FROM ( VALUES "

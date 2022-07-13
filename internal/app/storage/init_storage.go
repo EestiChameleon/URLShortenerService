@@ -10,6 +10,7 @@ var (
 	User Data
 )
 
+// Data interface used by DB and Memory structures for URL interactions.
 type Data interface {
 	GetOrigURL(shortURL string) (string, error) // find OrigURL by ShortURL
 	GetShortURL(origURL string) (string, error) // find ShortURL by OrigURL
@@ -24,12 +25,13 @@ type Data interface {
 	ShutDown() error // close the storage
 }
 
+// Pair structure is used to create pairs "original URL":"short URL".
 type Pair struct {
 	ShortURL string `json:"short_url"`
 	OrigURL  string `json:"original_url"`
 }
 
-// InitStorage method provides a Memory/File/DB storage, based on config data
+// InitStorage method provides a Memory/File/DB storage, based on config data.
 func InitStorage() (err error) {
 	log.Println("[INFO] storage -> InitStorage: start")
 	// not the default db for checks

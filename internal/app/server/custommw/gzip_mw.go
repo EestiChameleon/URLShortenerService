@@ -10,18 +10,20 @@ import (
 	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/responses"
 )
 
+// gzipWriter is a special structure what is used to change the ResponseWriter part of the request.
 type gzipWriter struct {
 	http.ResponseWriter
 	Writer io.Writer
 }
 
+// Write method of the gzipWriter to correspond the Writer interface.
 func (w gzipWriter) Write(b []byte) (int, error) {
 	// w.Writer будет отвечать за gzip-сжатие, поэтому пишем в него
 	return w.Writer.Write(b)
 }
 
 // ResponseGZIP - middleware that provides http.ResponseWriter with gzip Writer
-// when header Accept-Encoding contains gzip and set w.header Content-Encoding = gzip
+// when header Accept-Encoding contains "gzip" and set HeaderContentEncoding = gzip.
 func ResponseGZIP(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !strings.Contains(r.Header.Get(resp.HeaderAcceptEncoding), "gzip") {
@@ -45,7 +47,7 @@ func ResponseGZIP(next http.Handler) http.Handler {
 	})
 }
 
-// RequestGZIP - middleware that decompress request.body when header Content-Encoding = gzip
+// RequestGZIP - middleware that decompress request.body when header Content-Encoding = gzip.
 func RequestGZIP(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.Contains(r.Header.Get("Content-Encoding"), "gzip") {

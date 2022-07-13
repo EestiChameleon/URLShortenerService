@@ -11,6 +11,8 @@ import (
 	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 )
 
+// PostProvideShortURL handler receive a text "original URL" and creates a short URL pair.
+// In the response it returns text "<short url>".
 func PostProvideShortURL(w http.ResponseWriter, r *http.Request) {
 	// read body
 	log.Println("PostProvideShortURL: start - read r.Body")
