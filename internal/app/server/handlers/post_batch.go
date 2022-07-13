@@ -59,7 +59,8 @@ func PostBatch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Println("[DEBUG] handlers -> PostBatch: json.Unmarshal(byteBody, &reqBody)")
-	if err = json.Unmarshal(byteBody, &reqBody); err != nil {
+	err = json.Unmarshal(byteBody, &reqBody)
+	if err != nil {
 		log.Println("PostBatch: unable to unmarshal body:", err)
 		resp.WriteString(w, http.StatusBadRequest, "invalid data")
 		return
