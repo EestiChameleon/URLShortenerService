@@ -49,8 +49,8 @@ func TestJSONShortURL(t *testing.T) {
 			body:        `{"urly":"https://jwt.io/"}`,
 			want: want{
 				contentType: resp.MIMETextPlainCharsetUTF8,
-				respMessage: "invalid data",
 				statusCode:  400,
+				respMessage: "invalid data",
 			},
 		},
 	}

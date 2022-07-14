@@ -5,6 +5,8 @@ import (
 	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/responses"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -55,8 +57,8 @@ func TestPostBatch(t *testing.T) {
 			body:        `{"urly":"https://jwt.io/"}`,
 			want: want{
 				contentType: resp.MIMETextPlainCharsetUTF8,
-				respMessage: "invalid data",
 				statusCode:  400,
+				respMessage: "invalid data",
 			},
 		},
 	}
@@ -86,14 +88,10 @@ func TestPostBatch(t *testing.T) {
 			// заголовок ответа
 			assert.Equal(t, tt.want.contentType, res.Header.Get("Content-Type"))
 
-			// получаем и проверяем тело запроса
-			//if tt.want.respMessage != "" {
-			//	defer res.Body.Close()
-			//	urlResult, err := ioutil.ReadAll(res.Body)
-			//	require.NoError(t, err)
-			//
-			//	assert.Equal(t, tt.want.respMessage, string(urlResult))
-			//}
+			//получаем и проверяем тело запроса
+			defer res.Body.Close()
+			_, err := ioutil.ReadAll(res.Body)
+			require.NoError(t, err)
 		})
 	}
 }
