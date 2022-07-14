@@ -8,13 +8,14 @@ import (
 )
 
 func ExamplePostProvideShortURL() {
-	_, err := http.Post(
+	resp, err := http.Post(
 		"http://localhost:8080/",
 		resp.MIMETextPlainCharsetUTF8,
 		strings.NewReader("https://jwt.io/")) // POST "/"
 	if err != nil {
 		log.Fatal(err)
 	}
+	resp.Body.Close()
 	// Output:
 	// # Request
 	// POST / HTTP/1.1
