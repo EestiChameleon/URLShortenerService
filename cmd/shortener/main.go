@@ -30,3 +30,5 @@ func main() { //nolint:typecheck
 		log.Fatal(err)
 	}
 }
+
+// test br to check the work of yandex autotests
