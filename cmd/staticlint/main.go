@@ -18,7 +18,6 @@ import (
 	"golang.org/x/tools/go/analysis/multichecker"
 	"golang.org/x/tools/go/analysis/passes/printf"
 	"golang.org/x/tools/go/analysis/passes/shadow"
-	"golang.org/x/tools/go/analysis/passes/shift"
 	"golang.org/x/tools/go/analysis/passes/structtag"
 	"honnef.co/go/tools/staticcheck"
 	"os"
@@ -50,7 +49,6 @@ func main() {
 	mychecks := []*analysis.Analyzer{
 		printf.Analyzer,
 		shadow.Analyzer,
-		shift.Analyzer,
 		structtag.Analyzer,
 		exitanalyzer.ExitCheckAnalyzer, // my own analyser - os.Exit in main check
 	}
