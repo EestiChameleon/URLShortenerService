@@ -25,13 +25,4 @@ func ExampleGetOrigURL() {
 	//r.ServeHTTP(w, request)
 	//res := w.Result()
 	//defer res.Body.Close()
-
-	// Output:
-	// # Request
-	// GET /test HTTP/1.1
-	//
-	// # Response
-	// HTTP/1.1 307 Temporary Redirect
-	// Content-Type: text/plain; charset=utf-8
-	// Location: https://jwt.io/
 }
