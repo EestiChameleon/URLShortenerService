@@ -10,13 +10,13 @@ require (
 	github.com/robbert229/jwt v2.0.0+incompatible
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f
+	golang.org/x/tools v0.1.11
+	honnef.co/go/tools v0.0.1-2019.2.3
 )
 
 require (
-	github.com/chzyer/readline v1.5.0 // indirect
+	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/google/pprof v0.0.0-20220608213341-c488b8fa1db3 // indirect
-	github.com/ianlancetaylor/demangle v0.0.0-20220517205856-0058ec4f073c // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.11.0 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
@@ -30,9 +30,9 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rogpeppe/go-internal v1.8.0 // indirect
 	golang.org/x/crypto v0.0.0-20220307211146-efcb8507fb70 // indirect
+	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
 	golang.org/x/sys v0.0.0-20220712014510-0a85c31ab51e // indirect
 	golang.org/x/text v0.3.7 // indirect
-	golang.org/x/tools v0.1.11 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
