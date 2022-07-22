@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"os"
 
 	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/server"
@@ -12,7 +14,16 @@ func init() {
 
 }
 
+var (
+	buildVersion = `N/A`
+	buildDate    = `N/A`
+	buildCommit  = `N/A`
+)
+
 func main() { //nolint:typecheck
+	// incr 19
+	fmt.Fprintf(os.Stdout, "Build version: %s\nBuild date: %s\nBuild commit: %s\n", buildVersion, buildDate, buildCommit)
+
 	log.Println("[INFO] main -> cfg.GetEnvs()")
 	if err := cfg.GetEnvs(); err != nil {
 		log.Fatal(err)
