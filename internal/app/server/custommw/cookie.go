@@ -1,13 +1,16 @@
 package custommw
 
 import (
+	"log"
+	"net/http"
+
 	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/responses"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/service/data"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
-	"log"
-	"net/http"
 )
 
+// CheckCookie is a middleware that checks the cookie from the incoming request.
+// In case of successful check and decoding, the cookie data is stored in the memory.
 func CheckCookie(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Println("[INFO] custommw -> CheckCookie: start getcookie")

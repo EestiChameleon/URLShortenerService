@@ -3,22 +3,25 @@ package storage
 import (
 	"encoding/json"
 	"errors"
-	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
-	"github.com/EestiChameleon/URLShortenerService/internal/app/service/data"
 	"log"
 	"os"
+
+	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
+	"github.com/EestiChameleon/URLShortenerService/internal/app/service/data"
 )
 
 var (
 	ErrMemoryNotFound = errors.New("not found")
 )
 
+// MemoryStorage structure imitates the DB.
 type MemoryStorage struct {
 	ID       string
 	Pairs    map[string]string
 	UserData map[string][]Pair
 }
 
+// InitMemoryStorage function initializes the storage file where we save the URLs pairs data.
 func InitMemoryStorage() (*MemoryStorage, error) {
 	d := &MemoryStorage{
 		ID:       "",
@@ -57,6 +60,7 @@ func InitMemoryStorage() (*MemoryStorage, error) {
 	return d, nil
 }
 
+// GetOrigURL method gets from the storage file the original URL for the passed short URL.
 func (m *MemoryStorage) GetOrigURL(shortURL string) (string, error) {
 	log.Println("memory_storage - GetOrigURL: start")
 	origURL, ok := m.Pairs[shortURL]
@@ -66,6 +70,7 @@ func (m *MemoryStorage) GetOrigURL(shortURL string) (string, error) {
 	return origURL, nil
 }
 
+// GetShortURL method gets from the storage file the short URL for the passed original URL.
 func (m *MemoryStorage) GetShortURL(origURL string) (string, error) {
 	log.Println("memory_storage - GetShortURL: start")
 	for s, o := range m.Pairs {
@@ -76,6 +81,7 @@ func (m *MemoryStorage) GetShortURL(origURL string) (string, error) {
 	return ``, ErrMemoryNotFound
 }
 
+// SavePair method saves in the storage file new pair "original URL":"short URL" with user ID.
 func (m *MemoryStorage) SavePair(pair Pair) (err error) {
 	log.Println("memory_storage - SavePair: start")
 	// save data
@@ -98,6 +104,7 @@ func (m *MemoryStorage) SavePair(pair Pair) (err error) {
 	return nil
 }
 
+// GetUserURLs method provides the user pairs list from the storage file.
 func (m *MemoryStorage) GetUserURLs() ([]Pair, error) {
 	log.Println("memory_storage GetUserURLs: start")
 	pairs, ok := m.UserData[m.ID]
@@ -107,6 +114,7 @@ func (m *MemoryStorage) GetUserURLs() ([]Pair, error) {
 	return pairs, nil
 }
 
+// ShutDown method closes the storage file with saving the latest data.
 func (m *MemoryStorage) ShutDown() error {
 	log.Println("memory_storage CloseMemoryStorage: start")
 	if cfg.Envs.FileStoragePath != "" {
@@ -120,15 +128,18 @@ func (m *MemoryStorage) ShutDown() error {
 	return nil
 }
 
+// SetUserID stores the user ID in the MemoryStorage structure.
 func (m *MemoryStorage) SetUserID(userID string) {
 	log.Println("memory_storage SetUserID: start")
 	m.ID = userID
 }
 
+// GetUserID shows the stored user ID in the MemoryStorage structure.
 func (m *MemoryStorage) GetUserID() string {
 	return m.ID
 }
 
+// CreateShortURL creates a unique new short URL.
 func (m *MemoryStorage) CreateShortURL() (shortURL string, err error) {
 	log.Println("memory_storage GetShortURL: start")
 	shortURL, err = data.ShortURL()
@@ -148,6 +159,7 @@ func (m *MemoryStorage) CreateShortURL() (shortURL string, err error) {
 	return shortURL, nil
 }
 
+// UpdateFile method rewrite the storage file with the latest data.
 func (m *MemoryStorage) UpdateFile() error {
 	// open & rewrite file
 	log.Println("memory_storage UpdateFile: start")
@@ -176,7 +188,7 @@ func (m *MemoryStorage) UpdateFile() error {
 	return nil
 }
 
-// BatchDelete - заглушка для соответствия интерфейсу
+// BatchDelete - mock for interface.
 func (m *MemoryStorage) BatchDelete(shortURLs []string) error {
 	return nil
 }

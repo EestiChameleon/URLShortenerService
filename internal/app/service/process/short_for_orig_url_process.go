@@ -2,10 +2,13 @@ package process
 
 import (
 	"errors"
-	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 	"log"
+
+	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 )
 
+// ShortURLforOrigURL function creates new pair "original url":"short url" and save it.
+// It returns the new created short URL.
 func ShortURLforOrigURL(origURL string) (string, error) {
 	// get a NEW short url to pair with the orig url
 	shortURL, err := storage.User.CreateShortURL()

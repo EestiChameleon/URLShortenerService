@@ -4,11 +4,14 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
-	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
-	"github.com/robbert229/jwt"
 	"log"
+
+	"github.com/robbert229/jwt"
+
+	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
 )
 
+// ShortURL generates a new short url string. 7 symbols long.
 func ShortURL() (shortURL string, err error) {
 	log.Println("data actions: ShortURL start")
 	// 7 bytes is enough to provide more than 78kkk diff combinations
@@ -22,6 +25,7 @@ func ShortURL() (shortURL string, err error) {
 	return
 }
 
+// CreateUserID generates a new user ID. 7 symbols long.
 func CreateUserID() (string, error) {
 	log.Println("data actions: CreateUserID start")
 	b := make([]byte, 7)

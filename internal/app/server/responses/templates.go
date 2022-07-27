@@ -1,3 +1,4 @@
+// Package responses simplify the API interaction.
 package responses
 
 import (
@@ -7,6 +8,7 @@ import (
 	"time"
 )
 
+// Header and Content-Type const to simplify the choice. No more typo etc.
 const (
 	// HEADERS ------------------------------------
 	HeaderContentType     = "Content-Type"
@@ -31,6 +33,8 @@ const (
 	MIMEMultipartForm              = "multipart/form-data"
 )
 
+// JSON function provides a simple way for handler to response with a JSON.
+// Just provide the http.StatusCode and interface to json.Marshal.
 func JSON(w http.ResponseWriter, code int, i interface{}) {
 	log.Printf("templates JSON start. Code: %v, Interface: %v\n", code, i)
 	data, err := json.Marshal(i)
@@ -45,11 +49,14 @@ func JSON(w http.ResponseWriter, code int, i interface{}) {
 	w.Write(data) //nolint:errcheck
 }
 
+// NoContent sends nil body. Only http.StatusCode.
 func NoContent(w http.ResponseWriter, code int) {
 	log.Println("templates NoContent start. Code: ", code)
 	w.WriteHeader(code)
 }
 
+// WriteString sends a response with a text.
+// Just provide the http.StatusCode and string to send.
 func WriteString(w http.ResponseWriter, code int, s string) {
 	log.Printf("templates WriteString start. Code: %v, String: %s\n", code, s)
 	w.Header().Set(HeaderContentType, MIMETextPlainCharsetUTF8)
@@ -57,7 +64,7 @@ func WriteString(w http.ResponseWriter, code int, s string) {
 	w.Write([]byte(s)) //nolint:errcheck    // Проверять ошибку здесь смысла нет: если ты не можешь записать байтики в подключение, то ответ со статусом вернуть тоже не сможешь, тк соединение уже вероятно разорвано) (c)
 }
 
-// RedirectString send a redirect header to the indicated link - s
+// RedirectString send a response with a redirect header to the indicated link.
 func RedirectString(w http.ResponseWriter, s string) {
 	log.Printf("templates RedirectString start. String: %s\n", s)
 	w.Header().Set(HeaderContentType, MIMETextPlainCharsetUTF8)
@@ -65,7 +72,7 @@ func RedirectString(w http.ResponseWriter, s string) {
 	w.WriteHeader(http.StatusTemporaryRedirect)
 }
 
-// CreateCookie func provides a cookie "key=value" based on given params
+// CreateCookie function creates a cookie "key=value" based on given params. Path = "/". Expiration time is set to 1h.
 func CreateCookie(key string, value string) *http.Cookie {
 	log.Printf("templates CreateCookie start. Key: %s, Value: %s\n", key, value)
 	return &http.Cookie{

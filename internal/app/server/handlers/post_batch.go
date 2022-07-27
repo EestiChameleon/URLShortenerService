@@ -3,12 +3,13 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
-	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/responses"
-	"github.com/EestiChameleon/URLShortenerService/internal/app/service/process"
-	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 	"io"
 	"log"
 	"net/http"
+
+	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/responses"
+	"github.com/EestiChameleon/URLShortenerService/internal/app/service/process"
+	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 )
 
 type BatchReqPair struct {
@@ -42,6 +43,8 @@ type BatchResp []BatchRespPair
 //	   ...
 //	]
 
+// PostBatch handler receives a list of original URLs in format `[{"correlation_id": "<ID>", "original_url": "<original URL>"}]`.
+// For all received URLs it creates a short URL pair. As response: `[{"correlation_id": "<ID>", "short_url": "<short URL>"}]`.
 func PostBatch(w http.ResponseWriter, r *http.Request) {
 	var (
 		reqBody  BatchReq
@@ -59,7 +62,8 @@ func PostBatch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Println("[DEBUG] handlers -> PostBatch: json.Unmarshal(byteBody, &reqBody)")
-	if err = json.Unmarshal(byteBody, &reqBody); err != nil {
+	err = json.Unmarshal(byteBody, &reqBody)
+	if err != nil {
 		log.Println("PostBatch: unable to unmarshal body:", err)
 		resp.WriteString(w, http.StatusBadRequest, "invalid data")
 		return

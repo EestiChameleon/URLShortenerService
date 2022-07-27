@@ -3,14 +3,16 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
-	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/responses"
-	"github.com/EestiChameleon/URLShortenerService/internal/app/service/process"
 	"io"
 	"log"
 	"net/http"
+
+	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
+	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/responses"
+	"github.com/EestiChameleon/URLShortenerService/internal/app/service/process"
 )
 
+// DeleteBatch handler allows to delete multiple shorted URLs at single API call.
 func DeleteBatch(w http.ResponseWriter, r *http.Request) {
 	var reqBody []string
 
@@ -43,6 +45,7 @@ func DeleteBatch(w http.ResponseWriter, r *http.Request) {
 		shortURLs = append(shortURLs, shortURL)
 	}
 
+	// BatchDelete call from the process package. Minimum DB interaction in the handler.
 	log.Println("[INFO] handlers -> DeleteBatch: shortURLs list sent to process.BatchDelete")
 	process.BatchDelete(shortURLs)
 
