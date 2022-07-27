@@ -26,23 +26,6 @@ type BatchReq []BatchReqPair
 
 type BatchResp []BatchRespPair
 
-// PostBatch принимает в теле запроса JSON-объект -
-//	[
-//		{
-//			"correlation_id": "<строковый идентификатор>",
-//			"original_url": "<URL для сокращения>"
-//		},
-//	]
-
-// В качестве ответа PostBatch должен возвращать данные в формате:
-//	[
-//		{
-//		 "correlation_id": "<строковый идентификатор из объекта запроса>",
-//		"short_url": "<результирующий сокращённый URL>"
-//		},
-//	   ...
-//	]
-
 // PostBatch handler receives a list of original URLs in format `[{"correlation_id": "<ID>", "original_url": "<original URL>"}]`.
 // For all received URLs it creates a short URL pair. As response: `[{"correlation_id": "<ID>", "short_url": "<short URL>"}]`.
 func PostBatch(w http.ResponseWriter, r *http.Request) {
