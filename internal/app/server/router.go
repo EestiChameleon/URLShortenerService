@@ -1,8 +1,10 @@
 package server
 
 import (
+	"crypto/tls"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"golang.org/x/crypto/acme/autocert"
 
 	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/server/custommw"
@@ -41,11 +43,33 @@ func Start() error {
 	router.With(custommw.RequestGZIP, custommw.ResponseGZIP).Delete("/api/user/urls", handlers.DeleteBatch)
 
 	// Start server
-	s := http.Server{
-		Addr:    cfg.Envs.SrvAddr,
-		Handler: router,
-		// ReadTimeout: 30 * time.Second, // customize http.Server timeouts
-	}
+	s := new(http.Server)
 
-	return s.ListenAndServe()
+	switch {
+	// HTTPS
+	case cfg.Envs.EnableHTTPS != "":
+		certManager := autocert.Manager{
+			Prompt: autocert.AcceptTOS,
+			Cache:  autocert.DirCache("certs"),
+		}
+
+		s = &http.Server{
+			Addr:    cfg.Envs.SrvAddr, //":443", ???
+			Handler: router,
+			TLSConfig: &tls.Config{
+				GetCertificate: certManager.GetCertificate,
+			},
+		}
+		go http.ListenAndServe(":80", certManager.HTTPHandler(nil))
+		return s.ListenAndServeTLS("", "")
+
+	// HTTP
+	default:
+		s = &http.Server{
+			Addr:    cfg.Envs.SrvAddr,
+			Handler: router,
+			// ReadTimeout: 30 * time.Second, // customize http.Server timeouts
+		}
+		return s.ListenAndServe()
+	}
 }

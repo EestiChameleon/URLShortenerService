@@ -13,6 +13,7 @@ type Config struct {
 	FileStoragePath string `env:"FILE_STORAGE_PATH" envDefault:"tmp/urlPairsData"` // путь до файла с сокращёнными URL
 	CryptoKey       string `env:"CRYPTO_KEY" envDefault:"secret_123456789"`        // secret word to encrypt/decrypt JWT for cookies
 	DatabaseDSN     string `env:"DATABASE_DSN" envDefault:""`                      // Строка с адресом подключения к БД postgresql://localhost:5432/yandex_practicum_db
+	EnableHTTPS     string `env:"ENABLE_HTTPS" envDefault:""`                      // Параметр включения HTTPS у сервера.
 }
 
 var Envs Config
@@ -25,6 +26,7 @@ func GetEnvs() error {
 	flag.StringVar(&Envs.BaseURL, "b", "http://localhost:8080", "BASE_URL of the shorten result URL")
 	flag.StringVar(&Envs.FileStoragePath, "f", "tmp/urlPairsData", "FILE_STORAGE_PATH. Directory of the origin&shorten url pairs file")
 	flag.StringVar(&Envs.DatabaseDSN, "d", "", "DATABASE_DSN. Address for connection to DB")
+	flag.StringVar(&Envs.EnableHTTPS, "s", "", "ENABLE_HTTPS parameter. Enable the HTTPS server.")
 
 	log.Println("[INFO] cfg -> GetEnvs: parse envs start")
 	if err := env.Parse(&Envs); err != nil {
