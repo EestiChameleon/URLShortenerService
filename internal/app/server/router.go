@@ -45,9 +45,8 @@ func Start() error {
 	// Start server
 	s := new(http.Server)
 
-	switch {
-	// HTTPS
-	case cfg.Envs.EnableHTTPS != "":
+	// HTTPS:
+	if cfg.Envs.EnableHTTPS {
 		certManager := autocert.Manager{
 			Prompt: autocert.AcceptTOS,
 			Cache:  autocert.DirCache("certs"),
@@ -63,8 +62,8 @@ func Start() error {
 		go http.ListenAndServe(":80", certManager.HTTPHandler(nil))
 		return s.ListenAndServeTLS("", "")
 
-	// HTTP
-	default:
+	} else {
+		// HTTP:
 		s = &http.Server{
 			Addr:    cfg.Envs.SrvAddr,
 			Handler: router,
