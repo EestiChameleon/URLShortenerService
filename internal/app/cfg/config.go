@@ -10,17 +10,17 @@ import (
 )
 
 type Config struct {
-	SrvAddr         string `env:"SERVER_ADDRESS"`                           // адрес запуска HTTP-сервера
-	BaseURL         string `env:"BASE_URL"`                                 // базовый адрес результирующего сокращённого URL
-	FileStoragePath string `env:"FILE_STORAGE_PATH"`                        // путь до файла с сокращёнными URL
-	CryptoKey       string `env:"CRYPTO_KEY" envDefault:"secret_123456789"` // secret word to encrypt/decrypt JWT for cookies
-	DatabaseDSN     string `env:"DATABASE_DSN"`                             // Строка с адресом подключения к БД postgresql://localhost:5432/yandex_practicum_db
-	EnableHTTPS     bool   `env:"ENABLE_HTTPS"`                             // Параметр включения HTTPS у сервера.
+	SrvAddr         string `json:"server_address" env:"SERVER_ADDRESS"`       // адрес запуска HTTP-сервера
+	BaseURL         string `json:"base_url" env:"BASE_URL"`                   // базовый адрес результирующего сокращённого URL
+	FileStoragePath string `json:"file_storage_path" env:"FILE_STORAGE_PATH"` // путь до файла с сокращёнными URL
+	CryptoKey       string `env:"CRYPTO_KEY" envDefault:"secret_123456789"`   // secret word to encrypt/decrypt JWT for cookies
+	DatabaseDSN     string `json:"database_dsn" env:"DATABASE_DSN"`           // Строка с адресом подключения к БД postgresql://localhost:5432/yandex_practicum_db
+	EnableHTTPS     bool   `json:"enable_https" env:"ENABLE_HTTPS"`           // Параметр включения HTTPS у сервера.
 }
 
 var (
 	Envs        Config
-	cfgJSON     *Config
+	cfgJSON     Config
 	localConfig string = `{
 	"server_address": "localhost:8080",
 	"base_url": "http://localhost:8080",
@@ -56,18 +56,18 @@ func GetEnvs() error {
 
 	//json config flag parse
 	if configJSON != "" {
-		err := json.Unmarshal([]byte(configJSON), cfgJSON)
+		err := json.Unmarshal([]byte(configJSON), &cfgJSON)
 		if err != nil {
 			return err
 		}
 	} else {
-		err := json.Unmarshal([]byte(localConfig), cfgJSON)
+		err := json.Unmarshal([]byte(localConfig), &cfgJSON)
 		if err != nil {
 			return err
 		}
 	}
 
-	FillEmptyEnvs(cfgJSON)
+	FillEmptyEnvs(&cfgJSON)
 
 	return nil
 }
