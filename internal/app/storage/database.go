@@ -130,7 +130,7 @@ func (db *DBStorage) GetUserURLs() (pairs []Pair, err error) {
 
 // ConnectToDB method initialize connection to the indicated DB.
 func ConnectToDB() (*pgxpool.Pool, error) {
-	log.Println("[INFO] db -> ShutDown: start")
+	log.Println("[INFO] db -> Shutdown: start")
 	conn, err := pgxpool.Connect(context.Background(), cfg.Envs.DatabaseDSN)
 	if err != nil {
 		log.Printf("database ConnectToDB: Unable to connect to database: %v\n", err)
@@ -141,9 +141,9 @@ func ConnectToDB() (*pgxpool.Pool, error) {
 	return conn, nil
 }
 
-// ShutDown closes all connections in the DB pool.
-func (db *DBStorage) ShutDown() error {
-	log.Println("[INFO] db -> ShutDown: start")
+// Shutdown closes all connections in the DB pool.
+func (db *DBStorage) Shutdown() error {
+	log.Println("[INFO] db -> Shutdown: start")
 	db.DB.Close()
 	return nil
 }

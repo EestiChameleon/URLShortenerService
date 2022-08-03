@@ -114,8 +114,8 @@ func (m *MemoryStorage) GetUserURLs() ([]Pair, error) {
 	return pairs, nil
 }
 
-// ShutDown method closes the storage file with saving the latest data.
-func (m *MemoryStorage) ShutDown() error {
+// Shutdown method closes the storage file with saving the latest data.
+func (m *MemoryStorage) Shutdown() error {
 	log.Println("memory_storage CloseMemoryStorage: start")
 	if cfg.Envs.FileStoragePath != "" {
 		if err := m.UpdateFile(); err != nil {

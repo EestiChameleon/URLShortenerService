@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"crypto/tls"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -12,6 +13,8 @@ import (
 
 	"net/http"
 )
+
+var s *http.Server
 
 // Start starts the server router.
 func Start() error {
@@ -43,7 +46,6 @@ func Start() error {
 	router.With(custommw.RequestGZIP, custommw.ResponseGZIP).Delete("/api/user/urls", handlers.DeleteBatch)
 
 	// Start server
-	s := new(http.Server)
 
 	// HTTPS:
 	if cfg.Envs.EnableHTTPS {
@@ -71,4 +73,8 @@ func Start() error {
 		}
 		return s.ListenAndServe()
 	}
+}
+
+func Shutdown() error {
+	return s.Shutdown(context.Background())
 }

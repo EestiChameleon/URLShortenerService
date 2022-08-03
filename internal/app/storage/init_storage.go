@@ -22,7 +22,7 @@ type Data interface {
 	GetUserID() string               // provide userID
 	CreateShortURL() (string, error) // creates a new shortURL (checks for being unique in the storage)
 
-	ShutDown() error // close the storage
+	Shutdown() error // close the storage
 }
 
 // Pair structure is used to create pairs "original URL":"short URL".
