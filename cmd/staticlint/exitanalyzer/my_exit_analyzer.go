@@ -34,29 +34,9 @@ func run(pass *analysis.Pass) (interface{}, error) {
 						switch y := dec.(type) {
 						case *ast.FuncDecl:
 							// ast.FuncDecl представляет декларацию функции - ищем func main()
-							if y.Name.Name == `main` {
-								fmt.Printf("func decl: %s, pos: %v", y.Name.Name, fset.Position(y.Pos()))
-								//printer.Fprint(os.Stdout, fset, x)
-								fmt.Println()
-								for _, l := range y.Body.List {
-									switch es := l.(type) {
-									case *ast.ExprStmt:
-										switch ec := es.X.(type) {
-										case *ast.CallExpr:
-											// ast.CallExpr вызов функции - ищем os.Exit()
-											switch se := ec.Fun.(type) {
-											case *ast.SelectorExpr:
-												packageCall := fmt.Sprintf("%v", se.X)
-												if se.Sel.Name == "Exit" && packageCall == "os" {
-													//fmt.Printf("os.Exit() call in main, pos: %v", fset.Position(se.Pos()))
-													pass.Reportf(se.Pos(), "os.Exit() call in main")
-													//printer.Fprint(os.Stdout, fset, se)
-													fmt.Println()
-												}
-											}
-										}
-									}
-								}
+							se, ok := ExitCallCheck(pass, y, fset)
+							if ok {
+								pass.Reportf(se.Pos(), "os.Exit() call in main")
 							}
 						}
 					}
@@ -66,4 +46,30 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		})
 	}
 	return nil, nil
+}
+
+func ExitCallCheck(pass *analysis.Pass, call *ast.FuncDecl, fset *token.FileSet) (ast.Expr, bool) {
+	if call.Name.Name == `main` {
+		fmt.Printf("func decl: %s, pos: %v", call.Name.Name, fset.Position(call.Pos()))
+		//printer.Fprint(os.Stdout, fset, x)
+		fmt.Println()
+		for _, l := range call.Body.List {
+			switch es := l.(type) {
+			case *ast.ExprStmt:
+				switch ec := es.X.(type) {
+				case *ast.CallExpr:
+					// ast.CallExpr вызов функции - ищем os.Exit()
+					switch se := ec.Fun.(type) {
+					case *ast.SelectorExpr:
+						packageCall := fmt.Sprintf("%v", se.X)
+						if se.Sel.Name == "Exit" && packageCall == "os" {
+							//fmt.Printf("os.Exit() call in main, pos: %v", fset.Position(se.Pos()))
+							return se, true
+						}
+					}
+				}
+			}
+		}
+	}
+	return nil, false
 }

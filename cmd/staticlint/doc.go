@@ -9,17 +9,13 @@ Staticlint - multichecker для проверки кода нужными ана
 	4) двух или более любых публичных анализаторов на ваш выбор;
 	5) анализатор ExitCheckAnalyzer, запрещающий использовать прямой вызов os.Exit в функции main пакета main.
 
+Для запуска анализатора:
+	go run /{path_on_your_device}/URLShortenerService/cmd/staticlint/main.go
+
 Использование:
-	mycheck [-flag] [package]
+	main [-flag] [package]
 
-The flags are:
-	-d
-		Don't know.
-	-e
-		Explain please.
-	-h
-		How to call this multicheck.
-
+Run 'main help' for more detail, or 'main help name' for details and flags of a specific analyzer.
 
 Описание используемых анализаторов:
 	1) Стандартные статические анализаторы пакета golang.org/x/tools/go/analysis/passes
