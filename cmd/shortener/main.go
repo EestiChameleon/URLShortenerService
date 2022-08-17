@@ -43,11 +43,6 @@ func main() { //nolint:typecheck
 	go func() {
 		// we need only 1 signal to start the procedure
 		<-sigint
-		// after receiving the signal - stop the storage & server
-		// 1 - DB - close connection, Memory - save data and exit
-		if err := storage.User.Shutdown(); err != nil {
-			log.Printf("Database Shutdown err: %v", err)
-		}
 
 		if err := server.Shutdown(); err != nil {
 			// ошибки закрытия Listener

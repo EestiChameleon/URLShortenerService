@@ -12,28 +12,27 @@
 package main
 
 import (
-	"github.com/EestiChameleon/URLShortenerService/cmd/staticlint/exitanalyzer" // как быть?
+	"github.com/EestiChameleon/URLShortenerService/cmd/staticlint/exitanalyzer"
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/analysis/multichecker"
 	"golang.org/x/tools/go/analysis/passes/printf"
 	"golang.org/x/tools/go/analysis/passes/shadow"
 	"golang.org/x/tools/go/analysis/passes/structtag"
 	"honnef.co/go/tools/staticcheck"
-	"log"
 )
 
 func main() {
+	// определяем map подключаемых правил
 	mychecks := []*analysis.Analyzer{
 		printf.Analyzer,
 		shadow.Analyzer,
 		structtag.Analyzer,
 		exitanalyzer.ExitCheckAnalyzer, // my own analyser - os.Exit in main check
 	}
-	// добавляем анализаторы из staticcheck
-	for _, v := range staticcheck.Analyzers { // staticcheck.Analyzers contains only SA checks
-		mychecks = append(mychecks, v)
+	for _, v := range staticcheck.Analyzers {
+		// добавляем в массив нужные проверки
+		mychecks = append(mychecks, v.Analyzer) // staticcheck.Analyzers contains only SA checks
 	}
-	log.Println(mychecks)
 	multichecker.Main(
 		mychecks...,
 	)

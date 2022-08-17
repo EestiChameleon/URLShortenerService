@@ -16,18 +16,22 @@ type Config struct {
 	CryptoKey       string `env:"CRYPTO_KEY" envDefault:"secret_123456789"`   // secret word to encrypt/decrypt JWT for cookies
 	DatabaseDSN     string `json:"database_dsn" env:"DATABASE_DSN"`           // Строка с адресом подключения к БД postgresql://localhost:5432/yandex_practicum_db
 	EnableHTTPS     bool   `json:"enable_https" env:"ENABLE_HTTPS"`           // Параметр включения HTTPS у сервера.
+
+	JSONConfig    string `env:"CONFIG"`
+	TrustedSubnet string `json:"trusted_subnet" env:"TRUSTED_SUBNET"`
 }
 
+const (
+	serverAddressDefault   = "localhost:8080"
+	baseURLDefault         = "http://localhost:8080"
+	fileStoragePathDefault = "tmp/urlPairsData"
+	databaseDSNDefault     = "postgresql://localhost:5432/yandex_practicum_db"
+	enableHTTPSDefault     = false
+)
+
 var (
-	Envs        Config
-	cfgJSON     Config
-	localConfig string = `{
-	"server_address": "localhost:8080",
-	"base_url": "http://localhost:8080",
-	"file_storage_path": "tmp/urlPairsData",
-	"database_dsn": "postgresql://localhost:5432/yandex_practicum_db",
-	"enable_https": false
-	}`
+	Envs    Config
+	cfgJSON Config
 )
 
 type ContextKey string
@@ -44,6 +48,7 @@ func GetEnvs() error {
 	flag.BoolVar(&Envs.EnableHTTPS, "s", false, "ENABLE_HTTPS parameter. Enable the HTTPS server.")
 
 	flag.StringVar(&configJSON, "c", "", "APP config via JSON file. All params included")
+	flag.StringVar(&Envs.TrustedSubnet, "t", "", "строковое представление бесклассовой адресации (CIDR).")
 
 	log.Println("[INFO] cfg -> GetEnvs: parse envs start")
 	if err := env.Parse(&Envs); err != nil {
@@ -60,11 +65,6 @@ func GetEnvs() error {
 		if err != nil {
 			return err
 		}
-	} else {
-		err := json.Unmarshal([]byte(localConfig), &cfgJSON)
-		if err != nil {
-			return err
-		}
 	}
 
 	FillEmptyEnvs(&cfgJSON)
@@ -76,18 +76,18 @@ func GetEnvs() error {
 // Like this, if some values were passed via envs or flags, it will not be overwritten. Only empty fields.
 func FillEmptyEnvs(config *Config) {
 	if Envs.SrvAddr == "" {
-		Envs.SrvAddr = config.SrvAddr
+		Envs.SrvAddr = serverAddressDefault
 	}
 	if Envs.BaseURL == "" {
-		Envs.BaseURL = config.BaseURL
+		Envs.BaseURL = baseURLDefault
 	}
 	if Envs.FileStoragePath == "" {
-		Envs.FileStoragePath = config.FileStoragePath
+		Envs.FileStoragePath = fileStoragePathDefault
 	}
 	if Envs.DatabaseDSN == "" {
-		Envs.DatabaseDSN = config.DatabaseDSN
+		Envs.DatabaseDSN = databaseDSNDefault
 	}
 	if config.EnableHTTPS {
-		Envs.EnableHTTPS = config.EnableHTTPS
+		Envs.EnableHTTPS = enableHTTPSDefault
 	}
 }

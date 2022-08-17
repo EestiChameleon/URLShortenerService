@@ -22,6 +22,8 @@ type Data interface {
 	GetUserID() string               // provide userID
 	CreateShortURL() (string, error) // creates a new shortURL (checks for being unique in the storage)
 
+	GetStats() (int, int, error) // provides service statistics - shorted urls quantity & users quantity
+
 	Shutdown() error // close the storage
 }
 

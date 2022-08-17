@@ -45,6 +45,8 @@ func Start() error {
 
 	router.With(custommw.RequestGZIP, custommw.ResponseGZIP).Delete("/api/user/urls", handlers.DeleteBatch)
 
+	router.With(custommw.TrustSubnetCheck).Get("/api/internal/stats", handlers.GetStat)
+
 	// Start server
 
 	// HTTPS:

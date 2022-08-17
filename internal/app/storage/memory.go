@@ -172,7 +172,7 @@ func (m *MemoryStorage) UpdateFile() error {
 
 	// prepare data
 	log.Println("memory_storage UpdateFile: json.Marshal(m.Pairs)")
-	jsonByte, err := json.Marshal(m.Pairs)
+	jsonByte, err := json.Marshal(m.UserData)
 	if err != nil {
 		log.Println(err)
 		return err
@@ -191,4 +191,8 @@ func (m *MemoryStorage) UpdateFile() error {
 // BatchDelete - mock for interface.
 func (m *MemoryStorage) BatchDelete(shortURLs []string) error {
 	return nil
+}
+
+func (m *MemoryStorage) GetStats() (int, int, error) {
+	return len(m.Pairs), len(m.UserData), nil
 }

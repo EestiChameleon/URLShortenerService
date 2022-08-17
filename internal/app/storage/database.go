@@ -220,3 +220,30 @@ func MakeBatchUpdateStatement(shortURLs []string) string {
 	log.Println("[DEBUG] db -> MakeBatchUpdateStatement: OK")
 	return statement
 }
+
+// GetStats provides service info about all shorted urls and all users.
+func (db *DBStorage) GetStats() (urlsQ int, usrsQ int, err error) {
+	log.Println("[INFO] db -> GetStats: start")
+	if err = pgxscan.Get(context.Background(), db.DB, &urlsQ,
+		"SELECT count(distinct short_url) FROM shorten_pairs;"); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			log.Println("[ERROR] db -> GetStats urls: not found")
+			return 0, 0, nil
+		}
+		log.Println("[ERROR] db -> GetStats urls:", err)
+		return 0, 0, err
+	}
+
+	if err = pgxscan.Get(context.Background(), db.DB, &usrsQ,
+		"SELECT count(distinct user_id) FROM shorten_pairs;"); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			log.Println("[ERROR] db -> GetStats users: not found")
+			return 0, 0, nil
+		}
+		log.Println("[ERROR] db -> GetStats users:", err)
+		return 0, 0, err
+	}
+
+	log.Println("[DEBUG] db -> GetStats: OK")
+	return
+}
