@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/httpserver/responses"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -13,39 +14,47 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
-	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/responses"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 )
 
-func TestGetAllPairs(t *testing.T) {
+func TestGetOrigURL(t *testing.T) {
 	type want struct {
-		contentType string
-		statusCode  int
-		respMessage string
+		contentType    string
+		statusCode     int
+		respMessage    string
+		headerLocation string
 	}
 
 	tests := []struct {
 		name    string
 		request string
-		userID  string
 		want    want
 	}{
 		{
-			name:    "GET test #1: no user id - no content -> 204",
-			request: "http://localhost:8080/api/user/urls",
-			userID:  "",
+			name:    "GET test #1: test url -> 307",
+			request: "/test",
 			want: want{
-				statusCode: 204,
+				contentType:    resp.MIMETextPlainCharsetUTF8,
+				statusCode:     307,
+				headerLocation: "https://jwt.io/",
 			},
 		},
 		{
-			name:    "GET test #2: test user id -> 200",
-			request: "http://localhost:8080/api/user/urls",
-			userID:  "testUser",
+			name:    "GET test #2: empty id -> 404",
+			request: "/",
 			want: want{
-				contentType: resp.MIMEApplicationJSONCharsetUTF8,
-				statusCode:  200,
-				respMessage: "[{\"short_url\":\"http://localhost:8080/test\",\"original_url\":\"https://jwt.io/\"}]",
+				contentType: resp.MIMETextPlainCharsetUTF8,
+				statusCode:  404,
+				respMessage: "404 page not found\n",
+			},
+		},
+		{
+			name:    "GET test #3: wrong id -> 400",
+			request: "/666xxx",
+			want: want{
+				contentType: resp.MIMETextPlainCharsetUTF8,
+				statusCode:  400,
+				respMessage: "invalid id",
 			},
 		},
 	}
@@ -59,22 +68,20 @@ func TestGetAllPairs(t *testing.T) {
 			if err := storage.InitStorage(); err != nil {
 				log.Fatal(err)
 			}
-			if tt.userID != "" {
-				storage.User.SetUserID("testUser")
-				if err := storage.User.SavePair(storage.Pair{
+			if tt.request == "/test" {
+				storage.STRG.SetUserID("testUser")
+				storage.STRG.SavePair(storage.Pair{
 					ShortURL: "http://localhost:8080/test",
 					OrigURL:  "https://jwt.io/",
-				}); err != nil {
-					log.Fatal(err)
-				}
+				})
 			}
 			defer os.Remove(cfg.Envs.FileStoragePath)
+
 			// создаём новый Recorder
 			w := httptest.NewRecorder()
 			r := chi.NewRouter()
 			// определяем хендлер
-			storage.User.SetUserID(tt.userID)
-			r.Get("/api/user/urls", GetAllPairs)
+			r.Get("/{id}", GetOrigURL)
 			// запускаем сервер
 			r.ServeHTTP(w, request)
 			res := w.Result()

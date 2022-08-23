@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+package URLShortenerService.proto;
+
+option go_package = "github.com/EestiChameleon/URLShortenerService/proto";
+
+message GetOrigURLRequest {
+  string short_url = 1;
+}
+
+message GetOrigURLResponse {
+  string orig_url = 1;
+}
+
+message Pair {
+  string short_url = 1;
+  string orig_url = 2;
+}
+
+message GetGetAllPairsRequest {
+}
+
+message GetGetAllPairsResponse {
+  repeated Pair pairs = 1;
+}
+
+message PostProvideShortURLRequest {
+  string orig_url = 1;
+}
+
+message PostProvideShortURLResponse {
+  string short_url = 1;
+}
+
+message PostBatchRequestPair {
+    string correlation_id = 1;
+    string orig_url = 2;
+}
+
+message PostBatchResponsePair {
+  string correlation_id = 1;
+  string short_url = 2;
+}
+
+message PostBatchRequest {
+  repeated PostBatchRequestPair req_pairs = 1;
+}
+
+message PostBatchResponse {
+  repeated PostBatchResponsePair resp_pairs = 1;
+}
+
+message DelBatchRequest {
+  repeated string short_urls = 1;
+}
+
+message DelBatchResponse {
+  string error = 1;
+}
+
+message GetStatRequest {
+}
+
+message GetStatResponse {
+  int32 urls = 1;
+  int32 users = 2;
+}
+
+service Shortener {
+  rpc GetOrigURL(GetOrigURLRequest) returns (GetOrigURLResponse);
+  rpc GetAllPairs(GetGetAllPairsRequest) returns (GetGetAllPairsResponse);
+  rpc PostProvideShortURL(PostProvideShortURLRequest) returns (PostProvideShortURLResponse);
+  rpc PostBatch(PostBatchRequest) returns (PostBatchResponse);
+  rpc DeleteBatch(DelBatchRequest) returns (DelBatchResponse);
+
+  rpc GetStat(GetStatRequest) returns (GetStatResponse);
+
+}

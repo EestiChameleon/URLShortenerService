@@ -2,12 +2,11 @@ package custommw
 
 import (
 	"compress/gzip"
+	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/httpserver/responses"
 	"io"
 	"log"
 	"net/http"
 	"strings"
-
-	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/responses"
 )
 
 // gzipWriter is a special structure what is used to change the ResponseWriter part of the request.

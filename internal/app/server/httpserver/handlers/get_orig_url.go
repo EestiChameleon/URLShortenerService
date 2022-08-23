@@ -3,13 +3,13 @@ package handlers
 import (
 	"errors"
 	"fmt"
+	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/httpserver/responses"
 	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 
 	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
-	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/responses"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 )
 
@@ -23,7 +23,7 @@ func GetOrigURL(w http.ResponseWriter, r *http.Request) {
 	// check for the short url in map
 	shortURL := fmt.Sprintf("%s/%s", cfg.Envs.BaseURL, id)
 	log.Println("GetOrigURL: search for shortURL pair - ", shortURL)
-	origURL, err := storage.User.GetOrigURL(shortURL)
+	origURL, err := storage.STRG.GetOrigURL(shortURL)
 	if err != nil || origURL == "" {
 		if errors.Is(err, storage.ErrShortURLDeleted) {
 			log.Println("GetOrigURL: requested shortURL is deleted -> 410")

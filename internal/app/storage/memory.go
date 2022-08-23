@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	ErrMemoryNotFound = errors.New("not found")
+	ErrNotFound = errors.New("not found")
 )
 
 // MemoryStorage structure imitates the DB.
@@ -65,7 +65,7 @@ func (m *MemoryStorage) GetOrigURL(shortURL string) (string, error) {
 	log.Println("memory_storage - GetOrigURL: start")
 	origURL, ok := m.Pairs[shortURL]
 	if !ok || origURL == "" {
-		return ``, ErrMemoryNotFound
+		return ``, ErrNotFound
 	}
 	return origURL, nil
 }
@@ -78,7 +78,7 @@ func (m *MemoryStorage) GetShortURL(origURL string) (string, error) {
 			return s, nil
 		}
 	}
-	return ``, ErrMemoryNotFound
+	return ``, ErrNotFound
 }
 
 // SavePair method saves in the storage file new pair "original URL":"short URL" with user ID.
@@ -109,13 +109,13 @@ func (m *MemoryStorage) GetUserURLs() ([]Pair, error) {
 	log.Println("memory_storage GetUserURLs: start")
 	pairs, ok := m.UserData[m.ID]
 	if !ok {
-		return nil, ErrMemoryNotFound
+		return nil, ErrNotFound
 	}
 	return pairs, nil
 }
 
-// ShutDown method closes the storage file with saving the latest data.
-func (m *MemoryStorage) ShutDown() error {
+// Shutdown method closes the storage file with saving the latest data.
+func (m *MemoryStorage) Shutdown() error {
 	log.Println("memory_storage CloseMemoryStorage: start")
 	if cfg.Envs.FileStoragePath != "" {
 		if err := m.UpdateFile(); err != nil {
@@ -172,7 +172,7 @@ func (m *MemoryStorage) UpdateFile() error {
 
 	// prepare data
 	log.Println("memory_storage UpdateFile: json.Marshal(m.Pairs)")
-	jsonByte, err := json.Marshal(m.Pairs)
+	jsonByte, err := json.Marshal(m.UserData)
 	if err != nil {
 		log.Println(err)
 		return err
@@ -191,4 +191,8 @@ func (m *MemoryStorage) UpdateFile() error {
 // BatchDelete - mock for interface.
 func (m *MemoryStorage) BatchDelete(shortURLs []string) error {
 	return nil
+}
+
+func (m *MemoryStorage) GetStats() (int, int, error) {
+	return len(m.Pairs), len(m.UserData), nil
 }

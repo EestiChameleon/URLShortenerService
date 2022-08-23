@@ -3,12 +3,12 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/httpserver/responses"
 	"io"
 	"log"
 	"net/http"
 
 	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
-	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/responses"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/service/process"
 )
 

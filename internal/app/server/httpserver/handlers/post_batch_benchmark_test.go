@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/httpserver/responses"
 	"log"
 	"math/rand"
 	"net/http"
@@ -11,7 +12,6 @@ import (
 	"time"
 
 	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
-	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/responses"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 )
 
@@ -22,33 +22,11 @@ type TestBatchData struct {
 	OrigURL string `json:"original_url"`
 }
 
-//var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-//
-//func randSeq(n int) string {
-//	b := make([]rune, n)
-//	for i := range b {
-//		b[i] = letters[rand.Intn(len(letters))]
-//	}
-//	return string(b)
-//}
-
 func BenchmarkPostBatch(b *testing.B) {
 	rand.Seed(time.Now().UnixNano())
 	//var batchData []TestBatchData
 
 	b.Run("Endpoint: POST /api/shorten/batch", func(b *testing.B) {
-
-		//for i := 1; i < 100; i++ {
-		//	id := randSeq(7)
-		//	batchData = append(batchData, TestBatchData{
-		//		CorID:   id,
-		//		OrigURL: fmt.Sprintf("http://%s.com", id),
-		//	})
-		//}
-		//jsonBatchData, err := json.Marshal(batchData)
-		//if err != nil {
-		//	log.Fatal(err)
-		//}
 
 		path := "http://localhost:8080/api/shorten/batch"
 		contentType := resp.MIMEApplicationJSONCharsetUTF8
