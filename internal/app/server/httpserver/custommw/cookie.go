@@ -1,10 +1,10 @@
 package custommw
 
 import (
+	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/httpserver/responses"
 	"log"
 	"net/http"
 
-	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/responses"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/service/data"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 )
@@ -24,7 +24,7 @@ func CheckCookie(next http.Handler) http.Handler {
 				return
 			}
 			log.Println("[DEBUG] custommw -> CheckCookie storage.User.ID created & saved: ", userID)
-			storage.User.SetUserID(userID)
+			storage.STRG.SetUserID(userID)
 			token, err := data.JWTEncode("userID", userID)
 			if err != nil {
 				resp.NoContent(w, http.StatusInternalServerError)
@@ -43,7 +43,7 @@ func CheckCookie(next http.Handler) http.Handler {
 			return
 		}
 		log.Println("[DEBUG] custommw -> CheckCookie storage.User.ID decoded & saved: ", userID)
-		storage.User.SetUserID(userID)
+		storage.STRG.SetUserID(userID)
 		log.Print("[DEBUG] custommw -> UserID cookie found & decoded, storage.User.ID saved")
 		next.ServeHTTP(w, r)
 	})

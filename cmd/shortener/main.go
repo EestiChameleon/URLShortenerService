@@ -2,14 +2,13 @@ package main
 
 import (
 	"fmt"
+	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
+	"github.com/EestiChameleon/URLShortenerService/internal/app/server"
+	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
-
-	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
-	"github.com/EestiChameleon/URLShortenerService/internal/app/server"
-	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 )
 
 func init() {
@@ -22,7 +21,7 @@ var (
 	buildCommit  = `N/A`
 )
 
-func main() { //nolint:typecheck
+func main() {
 	// incr 19
 	fmt.Fprintf(os.Stdout, "Build version: %s\nBuild date: %s\nBuild commit: %s\n", buildVersion, buildDate, buildCommit)
 
@@ -44,7 +43,7 @@ func main() { //nolint:typecheck
 		// we need only 1 signal to start the procedure
 		<-sigint
 
-		if err := server.Shutdown(); err != nil {
+		if err := server.SRV.ShutDown(); err != nil {
 			// ошибки закрытия Listener
 			log.Printf("HTTP server Shutdown err: %v", err)
 		}
@@ -55,13 +54,14 @@ func main() { //nolint:typecheck
 
 	// database initiation
 	log.Println("[INFO] main -> storage.InitStorage()")
+
 	if err := storage.InitStorage(); err != nil {
 		log.Fatal(err)
 	}
 
-	// start the server
+	// start the server - how to decide which one? gRPC or HTTP?
 	log.Println("[INFO] main -> server.Start()")
-	if err := server.Start(); err != nil {
+	if err := server.InitServer(); err != nil {
 		log.Fatal(err)
 	}
 
@@ -72,8 +72,9 @@ func main() { //nolint:typecheck
 	// например закрыть соединение с базой данных,
 	// закрыть открытые файлы
 
-	if err := storage.User.Shutdown(); err != nil {
+	if err := storage.STRG.Shutdown(); err != nil {
 		log.Printf("Database Shutdown err: %v", err)
+		log.Fatal(err)
 	}
 
 	log.Println("Server Shutdown gracefully")

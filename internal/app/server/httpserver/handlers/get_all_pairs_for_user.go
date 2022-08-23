@@ -2,10 +2,10 @@ package handlers
 
 import (
 	"errors"
+	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/httpserver/responses"
 	"log"
 	"net/http"
 
-	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/responses"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 )
 
@@ -13,9 +13,9 @@ import (
 // User ID is obtained from the cookie.
 func GetAllPairs(w http.ResponseWriter, r *http.Request) {
 	log.Println("[INFO] handlers -> GetAllPairs start: search pairs")
-	pairs, err := storage.User.GetUserURLs()
+	pairs, err := storage.STRG.GetUserURLs()
 	if err != nil {
-		if errors.Is(err, storage.ErrMemoryNotFound) {
+		if errors.Is(err, storage.ErrNotFound) {
 			log.Println("[ERROR] handlers -> GetAllPairs: user pairs not found")
 			resp.NoContent(w, http.StatusNoContent)
 			return

@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	ErrMemoryNotFound = errors.New("not found")
+	ErrNotFound = errors.New("not found")
 )
 
 // MemoryStorage structure imitates the DB.
@@ -65,7 +65,7 @@ func (m *MemoryStorage) GetOrigURL(shortURL string) (string, error) {
 	log.Println("memory_storage - GetOrigURL: start")
 	origURL, ok := m.Pairs[shortURL]
 	if !ok || origURL == "" {
-		return ``, ErrMemoryNotFound
+		return ``, ErrNotFound
 	}
 	return origURL, nil
 }
@@ -78,7 +78,7 @@ func (m *MemoryStorage) GetShortURL(origURL string) (string, error) {
 			return s, nil
 		}
 	}
-	return ``, ErrMemoryNotFound
+	return ``, ErrNotFound
 }
 
 // SavePair method saves in the storage file new pair "original URL":"short URL" with user ID.
@@ -109,7 +109,7 @@ func (m *MemoryStorage) GetUserURLs() ([]Pair, error) {
 	log.Println("memory_storage GetUserURLs: start")
 	pairs, ok := m.UserData[m.ID]
 	if !ok {
-		return nil, ErrMemoryNotFound
+		return nil, ErrNotFound
 	}
 	return pairs, nil
 }

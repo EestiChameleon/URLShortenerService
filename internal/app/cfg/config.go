@@ -19,6 +19,7 @@ type Config struct {
 
 	JSONConfig    string `env:"CONFIG"`
 	TrustedSubnet string `json:"trusted_subnet" env:"TRUSTED_SUBNET"`
+	ServerType    string `json:"server_type" env:"SERVER_TYPE"`
 }
 
 const (
@@ -27,6 +28,7 @@ const (
 	fileStoragePathDefault = "tmp/urlPairsData"
 	databaseDSNDefault     = "postgresql://localhost:5432/yandex_practicum_db"
 	enableHTTPSDefault     = false
+	serverTypeDefault      = "http"
 )
 
 var (
@@ -89,5 +91,8 @@ func FillEmptyEnvs(config *Config) {
 	}
 	if config.EnableHTTPS {
 		Envs.EnableHTTPS = enableHTTPSDefault
+	}
+	if config.ServerType == "" {
+		Envs.ServerType = serverTypeDefault
 	}
 }

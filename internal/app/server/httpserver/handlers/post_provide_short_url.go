@@ -2,13 +2,13 @@ package handlers
 
 import (
 	"errors"
+	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/httpserver/responses"
+	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 	"io"
 	"log"
 	"net/http"
 
-	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/responses"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/service/process"
-	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 )
 
 // PostProvideShortURL handler receive a text "original URL" and creates a short URL pair.

@@ -1,23 +1,22 @@
-package server
+package httpserver
 
 import (
 	"context"
 	"crypto/tls"
+	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
+	custommw "github.com/EestiChameleon/URLShortenerService/internal/app/server/httpserver/custommw"
+	handlers "github.com/EestiChameleon/URLShortenerService/internal/app/server/httpserver/handlers"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"golang.org/x/crypto/acme/autocert"
-
-	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
-	"github.com/EestiChameleon/URLShortenerService/internal/app/server/custommw"
-	"github.com/EestiChameleon/URLShortenerService/internal/app/server/handlers"
-
 	"net/http"
 )
 
-var s *http.Server
+type HTTPServer struct {
+	*http.Server
+}
 
-// Start starts the server router.
-func Start() error {
+func InitHttpServer() (*HTTPServer, error) {
 	// Chi instance
 	router := chi.NewRouter()
 
@@ -56,7 +55,7 @@ func Start() error {
 			Cache:  autocert.DirCache("certs"),
 		}
 
-		s = &http.Server{
+		serv := &http.Server{
 			Addr:    cfg.Envs.SrvAddr, //":443", ???
 			Handler: router,
 			TLSConfig: &tls.Config{
@@ -64,19 +63,31 @@ func Start() error {
 			},
 		}
 		go http.ListenAndServe(":80", certManager.HTTPHandler(nil))
-		return s.ListenAndServeTLS("", "")
+		//return s.ListenAndServeTLS("", "")
+		return &HTTPServer{serv}, nil
 
 	} else {
 		// HTTP:
-		s = &http.Server{
+		serv := &http.Server{
 			Addr:    cfg.Envs.SrvAddr,
 			Handler: router,
 			// ReadTimeout: 30 * time.Second, // customize http.Server timeouts
 		}
-		return s.ListenAndServe()
+		//return s.ListenAndServe()
+		return &HTTPServer{serv}, nil
 	}
 }
 
-func Shutdown() error {
-	return s.Shutdown(context.Background())
+func (h *HTTPServer) Start() error {
+	if cfg.Envs.EnableHTTPS {
+		// HTTPS
+		return h.ListenAndServeTLS("", "")
+	} else {
+		// HTTP
+		return h.ListenAndServe()
+	}
+}
+
+func (h *HTTPServer) ShutDown() error {
+	return h.Shutdown(context.Background())
 }

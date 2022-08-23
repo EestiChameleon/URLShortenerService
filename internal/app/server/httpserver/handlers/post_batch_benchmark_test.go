@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/httpserver/responses"
 	"log"
 	"math/rand"
 	"net/http"
@@ -11,7 +12,6 @@ import (
 	"time"
 
 	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
-	resp "github.com/EestiChameleon/URLShortenerService/internal/app/server/responses"
 	"github.com/EestiChameleon/URLShortenerService/internal/app/storage"
 )
 

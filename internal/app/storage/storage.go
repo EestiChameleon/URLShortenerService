@@ -6,12 +6,10 @@ import (
 	"github.com/EestiChameleon/URLShortenerService/internal/app/cfg"
 )
 
-var (
-	User Data
-)
+var STRG Storage
 
 // Data interface used by DB and Memory structures for URL interactions.
-type Data interface {
+type Storage interface {
 	GetOrigURL(shortURL string) (string, error) // find OrigURL by ShortURL
 	GetShortURL(origURL string) (string, error) // find ShortURL by OrigURL
 	SavePair(pair Pair) error                   // save origURL and shortURL pair to storage
@@ -39,20 +37,16 @@ func InitStorage() (err error) {
 	// not the default db for checks
 	if cfg.Envs.DatabaseDSN != "" {
 		log.Println("[DEBUG] storage -> InitStorage: DB case")
-		User, err = InitDBStorage()
+		STRG, err = InitDBStorage()
 		if err != nil {
-			log.Println("[ERROR] storage -> InitStorage: InitDBStorage err -", err)
 			return err
 		}
 	} else {
 		log.Println("[DEBUG] storage -> InitStorage: Memory case")
-		User, err = InitMemoryStorage()
+		STRG, err = InitMemoryStorage()
 		if err != nil {
-			log.Println("[ERROR] storage -> InitStorage: InitMemoryStorage err -", err)
 			return err
 		}
 	}
-
-	log.Println("[DEBUG] storage -> InitStorage: OK")
 	return nil
 }
